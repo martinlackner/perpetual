@@ -3,6 +3,7 @@
 # Martin Lackner
 # Proceedings of AAAI 2020
 
+
 from gmpy2 import mpq
 import perpetual_rules as perpetual
 import profiles
@@ -349,7 +350,7 @@ def analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation):
         expected_order1 = {"pav": 6,
                            "subtraction_numvoters": 4,
                            "subtraction_one": 8,
-                           "setzero": 5,
+                           "reset": 5,
                            "per_nash": 7,
                            "per_cc": 0,
                            "av": 2,
@@ -360,7 +361,7 @@ def analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation):
         expected_order2 = {"pav": 5,
                            "subtraction_numvoters": 7,
                            "subtraction_one": 8,
-                           "setzero": 4,
+                           "reset": 4,
                            "per_nash": 6,
                            "per_cc": 1,
                            "av": 2,
@@ -503,7 +504,7 @@ for spec in exp_specs:
              "per_equality",
              "per_quota",
              "per_nash",
-             "per_setzero",
+             "per_reset",
              "per_unitcost",
              "per_consensus",
              "serial_dictatorship",
@@ -518,12 +519,14 @@ for spec in exp_specs:
             _, pvalue = stats.ttest_rel(np.asarray(aver_quotacompl[rule1]),
                                         np.asarray(aver_quotacompl[rule2]))
             if pvalue > 0.01:
-                print "aver_quotacompl", rule1, rule2, pvalue
+                print "aver_quotacompl for", rule1, "and", rule2,
+                print "not significant, p =", pvalue
 
             _, pvalue = stats.ttest_rel(np.asarray(aver_influencegini[rule1]),
                                         np.asarray(aver_influencegini[rule2]))
             if pvalue > 0.01:
-                print "aver_influencegini", rule1, rule2, pvalue
+                print "aver_influencegini for", rule1, "and", rule2,
+                print "not significant, p =", pvalue, rule1, rule2, pvalue
 
     plot_data(exp_name,
               aver_quotacompl,

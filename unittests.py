@@ -24,8 +24,8 @@ class TestPerpetualRules(unittest.TestCase):
             choice = perpetual.compute_rule(rule, profile, weights)
             self.assertEqual(choice, expected_choices[i])
 
-    def test_setzero_fails_sp(self):
-        rule = "per_setzero"
+    def test_reset_fails_sp(self):
+        rule = "per_reset"
         appsets = {1: [1], 2: [1], 3: [1],
                    4: [2], 5: [3], 6: [4]}
         voters = [1, 2, 3, 4, 5, 6]
@@ -191,7 +191,7 @@ class TestPerpetualRules(unittest.TestCase):
         cands = [1, 2, 3, 4]
         profile1 = profiles.ApprovalProfile(voters, cands, appsets1)
         profile2 = profiles.ApprovalProfile(voters, cands, appsets2)
-        weights = perpetual.init_weights("setzero", voters)
+        weights = perpetual.init_weights("per_reset", voters)
 
         self.assertEqual(perpetual.per_equality(profile1, weights), 1)
         self.assertEqual(perpetual.per_equality(profile2, weights), 3)
@@ -205,7 +205,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_consensus": [3, 2, 3, 3, 2, 3],
                     "per_majority": [3, 3, 2, 3, 3, 3],
                     "per_unitcost": [3, 2, 3, 3, 2, 3],
-                    "per_setzero": [3, 2, 3, 2, 3, 2],
+                    "per_reset": [3, 2, 3, 2, 3, 2],
                     "per_nash": [3, 2, 3, 3, 2, 3],
                     "per_equality": [3, 2, 3, 2, 3, 2],
                     "per_phragmen": [3, 2, 3, 3, 2, 3],

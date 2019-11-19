@@ -1,3 +1,8 @@
+# Implementations of perpetual voting rules
+
+# Author: Martin Lackner
+
+
 from gmpy2 import mpq
 import random
 
