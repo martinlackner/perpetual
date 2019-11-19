@@ -11,31 +11,12 @@ influence on the decision process and thus foster long-term participation of min
 Further details can be found in [1], in particular a description of all
 implemented rules.
 
-## Example
-
-The following code computes the Proportional Approval Voting (PAV) rule for a profile with 6 voters and 5 candidates.
-
-```python
-from preferences import Profile
-import rules_approval
-
-profile = Profile(5)
-profile.add_preferences([[0,1,2], [0,1], [0,1], [1,2], [3,4], [3,4]])
-committeesize = 3
-print rules_approval.compute_pav(profile, committeesize, ilp=False)
-```
-The output is 
-```
-[[0, 1, 3], [0, 1, 4]]
-```
-which corresponds to the two committees {0,1,3} and {0,1,4}. Further examples can be found in [examples.py](examples.py).
-
 ## Comments
 
-* This module requires Python 2.7.
-* Some functions use fractions (e.g., `compute_seqphragmen`). These compute significantly faster if the module [gmpy2](https://gmpy2.readthedocs.io/) is available. If gmpy2 is not available, the much slower Python module [fractions](https://docs.python.org/2/library/fractions.html) is used.
-
+* This module requires Python 2.7 and [gmpy2](https://gmpy2.readthedocs.io/).
+* The code for running the numerical simulations in [1] are contained in [experiments.py](experiments.py).
 
 ## References
 
-[1] 
+[1] Martin Lackner. Perpetual Voting: Fairness in Long-Term Decision Making. Proceedings of AAAI 2020, 2020. http://martin.lackner.xyz/publications/perpetual.pdf
+ 
