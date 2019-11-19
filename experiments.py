@@ -14,7 +14,8 @@ from perpetual_rules import PERPETUAL_RULES, SHORT_RULENAMES
 import matplotlib
 import matplotlib.pyplot as plt
 import csv
-from os.path import exists
+from os.path import exists, isdir
+from os import makedirs
 import pickle
 from scipy import stats
 
@@ -436,6 +437,12 @@ def analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation):
 #     "full"]
 
 random.seed(31415)
+
+try:
+    makedirs("pickle")
+except OSError:
+    if not isdir("pickle"):
+        raise
 
 exp_specs = [
     [10000, 20, 5, 20, 0.2, "eucl2", "uniform_square", 1.5]]
