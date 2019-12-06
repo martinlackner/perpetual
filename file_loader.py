@@ -23,7 +23,6 @@ def start(dir_name, max_approvals=None):
 	all_voters = set()
 	if file_dir is not None:
 		files = sorted(files)  # sorts from oldest to newest if name is sortable by date (YYYYMMDD)
-		print files
 		for f in files:
 			if f.endswith('.tsoi'):
 				candidates, profile = load_tsoi_file(
@@ -70,3 +69,63 @@ def load_tsoi_file(abs_path, max_apporvals):
 
 		return list(used_candidates), profile
 
+
+# This loads csv files with spotify charts and returns a list of approval profiles
+# and a list of all voters from  these profiles
+def start_spotify_csv(dir_name, max_approval_percent=0.8):
+	input_path = os.path.join(script_dir, dir_name)
+	files = []
+	file_dir = None
+	for (dir_path, _, filenames) in os.walk(input_path):
+		file_dir = dir_path
+		files = filenames
+		break
+	approval_profiles = []
+	all_voters = set()
+	candidates = set()
+	profile = {}
+	if file_dir is not None:
+		files = sorted(files)  # sorts from oldest to newest if name is sortable by date (YYYYMMDD)
+		date = None
+		for f in files:
+			file_date = f.split("_")[1]  # date should be between first and second "_"
+			if f.endswith('.csv'):
+				if date is None or file_date != date:
+					if len(profile) > 0:
+						profiles.ApprovalProfile(list(profile.keys()), candidates, profile)
+						approval_profiles.append(profiles.ApprovalProfile(
+							list(profile.keys()), candidates, profile))
+						all_voters = all_voters.union(list(profile.keys()))
+					profile = {}
+					date = file_date
+					candidates = set()
+				load_spotify_csv_file(os.path.join(file_dir, f),
+									  candidates, profile, max_approval_percent)
+	if len(profile) > 0:
+		profiles.ApprovalProfile(list(profile.keys()), candidates, profile)
+		approval_profiles.append(profiles.ApprovalProfile(
+			list(profile.keys()), candidates, profile))
+		all_voters = all_voters.union(list(profile.keys()))
+	return approval_profiles, all_voters
+
+
+def load_spotify_csv_file(abs_path, used_candidates, profile, max_approval_percent):
+	voter = None
+	with open(abs_path, "r") as f:
+		lines = f.readlines()
+		if len(lines) > 1:
+			if not lines[1].startswith('NA,NA,'):
+				minimum_streams = None
+				voter = None
+				for line in lines[1:]:
+					x = line.split(",")
+					if voter is None:
+						voter = x[-2]
+						minimum_streams = float(x[-4]) * max_approval_percent
+						profile[voter] = []
+					alternative_id = x[-1].strip()
+					streams = float(x[-4])
+					if streams <= minimum_streams:
+						break
+					profile[voter].append(alternative_id)
+					used_candidates.add(alternative_id)
