@@ -11,7 +11,9 @@ script_dir = os.path.dirname(__file__)
 
 
 # Loads all tsoi files directly within the given directory.
-def start_tsoi_load(dir_name, max_approvals=None):
+# All tsoi files should conform to the naming convention of *_date.tsoi where the date format should be sortable
+# from_date and to_date are strings that state the first file to consider and the last one.
+def start_tsoi_load(dir_name, max_approvals=None, from_date=None, to_date=None):
 
 	input_path = os.path.join(script_dir, dir_name)
 	files = []
@@ -26,6 +28,12 @@ def start_tsoi_load(dir_name, max_approvals=None):
 		files = sorted(files)  # sorts from oldest to newest if name is sortable by date (YYYYMMDD)
 		for f in files:
 			if f.endswith('.tsoi'):
+				if from_date is not None or to_date is not None:
+					date = f.split("_")[-1].split(".tsoi")[0]
+					if from_date is not None and date < from_date:
+						continue
+					if to_date is not None and date > to_date:
+						break
 				candidates, profile = load_tsoi_file(
 					os.path.join(file_dir, f), max_approvals)
 				approval_profiles.append(profiles.ApprovalProfile(
@@ -76,7 +84,8 @@ def load_tsoi_file(abs_path, max_approvals):
 
 # This loads csv files with spotify charts and returns a list of approval profiles
 # and a list of all voters from  these profiles
-def start_spotify_csv_load(dir_name, max_approval_percent=0.8):
+# from_date and to_date are strings that state the first file to consider and the last one.
+def start_spotify_csv_load(dir_name, max_approval_percent=0.8, from_date=None, to_date=None):
 	input_path = os.path.join(script_dir, dir_name)
 	files = []
 	file_dir = None
@@ -94,6 +103,11 @@ def start_spotify_csv_load(dir_name, max_approval_percent=0.8):
 		for f in files:
 			file_date = f.split("_")[1]  # date should be between first and second "_"
 			if f.endswith('.csv'):
+				if from_date is not None or to_date is not None:
+					if from_date is not None and file_date < from_date:
+						continue
+					if to_date is not None and file_date > to_date:
+						break
 				if date is None or file_date != date:
 					if len(profile) > 0:
 						profiles.ApprovalProfile(list(profile.keys()), candidates, profile)
