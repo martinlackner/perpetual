@@ -10,7 +10,8 @@ import os
 script_dir = os.path.dirname(__file__)
 
 
-def start(dir_name, max_approvals=None):
+# Loads all tsoi files directly within the given directory.
+def start_tsoi_load(dir_name, max_approvals=None):
 
 	input_path = os.path.join(script_dir, dir_name)
 	files = []
@@ -34,7 +35,10 @@ def start(dir_name, max_approvals=None):
 	return approval_profiles, all_voters
 
 
-def load_tsoi_file(abs_path, max_apporvals):
+# Loads the given file.
+# Only considers up to max_approvals alternatives per voter.
+# If no max_approvals is given it takes 50% of the alternatives (at least one).
+def load_tsoi_file(abs_path, max_approvals):
 	with open(abs_path, "r") as f:
 		lines = f.readlines()
 		candidate_count = int(lines[0])
@@ -55,10 +59,10 @@ def load_tsoi_file(abs_path, max_apporvals):
 				print("ranking Data seems to have wrong format in file %s" % abs_path)
 			local_ranking = []
 			profile[parts[0]] = local_ranking  # name of the voter
-			if max_apporvals is None:
+			if max_approvals is None:
 				take = max(len(parts[1].split(',')[1:]) / 2, 1)
 			else:
-				take = max_apporvals
+				take = max_approvals
 			for vote in parts[1].split(',')[1:]:  # the first number is a count, this can be ignored here
 				if take > 0:
 					take -= 1
@@ -72,7 +76,7 @@ def load_tsoi_file(abs_path, max_apporvals):
 
 # This loads csv files with spotify charts and returns a list of approval profiles
 # and a list of all voters from  these profiles
-def start_spotify_csv(dir_name, max_approval_percent=0.8):
+def start_spotify_csv_load(dir_name, max_approval_percent=0.8):
 	input_path = os.path.join(script_dir, dir_name)
 	files = []
 	file_dir = None
@@ -109,8 +113,11 @@ def start_spotify_csv(dir_name, max_approval_percent=0.8):
 	return approval_profiles, all_voters
 
 
+# Opens a given spotify csv file.
+# All the used candidates are added to the set used_candidates.
+# All alternatives that reached at least highest_streaming_number * max_approval_percent streams
+# are added to the profile for the given voter
 def load_spotify_csv_file(abs_path, used_candidates, profile, max_approval_percent):
-	voter = None
 	with open(abs_path, "r") as f:
 		lines = f.readlines()
 		if len(lines) > 1:
@@ -125,7 +132,7 @@ def load_spotify_csv_file(abs_path, used_candidates, profile, max_approval_perce
 						profile[voter] = []
 					alternative_id = x[-1].strip()
 					streams = float(x[-4])
-					if streams <= minimum_streams:
+					if streams < minimum_streams:
 						break
 					profile[voter].append(alternative_id)
 					used_candidates.add(alternative_id)
