@@ -5,6 +5,8 @@
 
 
 from gmpy2 import mpq
+
+import file_loader
 import perpetual_rules as perpetual
 import profiles
 import random
@@ -21,6 +23,18 @@ from scipy import stats
 
 
 ########################################################################
+def get_all_candidates(history):
+    candidates = set()
+    for prof in history:
+        candidates = candidates.union(prof.cands)
+    return list(candidates)
+
+def get_all_voters(history):
+    voters = set()
+    for prof in history:
+        voters = voters.union(prof.voters)
+    return list(voters)
+
 
 def save_twodim_dict_as_csv(name, indexrow, indexcol, dictionary):
     with open('csv/' + name + '.csv', 'w') as csvfile:
@@ -271,8 +285,8 @@ def generate_instances(exp_specs):
 
 def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
                         aver_satisfaction, aver_influencegini):
-    voters = history[0].voters
-    cands = history[0].cands
+    voters = get_all_voters(history)
+    cands = get_all_candidates(history)
 
     for compute_rule in PERPETUAL_RULES:
         # print "*" * (len(compute_rule) + 4)
@@ -543,3 +557,72 @@ for spec in exp_specs:
               rules)
 
 print "Done"
+
+
+# experiments from files
+input_dirs = ["data/"]
+
+for directory in input_dirs:
+    aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
+    max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
+    aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
+    aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
+
+    history, voters = file_loader.start_tsoi_load(directory, 10)
+    av_size = np.average([len(prof.approval_sets[v])
+                          for prof in history
+                          for v in prof.voters])
+
+    print "average approval set size:", av_size
+    num_uncontr = 0
+    num_total = 0
+
+    for prof in history:
+        num_total += 1
+        sets = [set(a) for a in prof.approval_sets.values()]
+        if len(set.intersection(*sets)) > 0:
+            num_uncontr += 1
+    print "uncontroversial (unanimous) profiles:",
+    print num_uncontr * 100. / num_total, "%"
+    run_exp_for_history(history,
+                        aver_quotacompl,
+                        max_quotadeviation,
+                        aver_satisfaction,
+                        aver_influencegini)
+    rules = ["av",
+             "per_pav",
+             "per_equality",
+             "per_quota",
+             "per_nash",
+             "per_reset",
+             "per_unitcost",
+             "per_consensus",
+             "serial_dictatorship",
+             ]
+
+    # statistical significance
+    for rule1 in rules:
+        for rule2 in rules:
+            if rule1 == rule2:
+                continue
+
+            _, pvalue = stats.ttest_rel(np.asarray(aver_quotacompl[rule1]),
+                                        np.asarray(aver_quotacompl[rule2]))
+            if pvalue > 0.01:
+                print "aver_quotacompl for", rule1, "and", rule2,
+                print "not significant, p =", pvalue
+
+            _, pvalue = stats.ttest_rel(np.asarray(aver_influencegini[rule1]),
+                                        np.asarray(aver_influencegini[rule2]))
+            if pvalue > 0.01:
+                print "aver_influencegini for", rule1, "and", rule2,
+                print "not significant, p =", pvalue, rule1, rule2, pvalue
+
+            plot_data("data",
+                      aver_quotacompl,
+                      max_quotadeviation,
+                      aver_satisfaction,
+                      aver_influencegini,
+                      rules)
+
+
