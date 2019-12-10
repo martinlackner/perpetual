@@ -4,6 +4,8 @@
 # Proceedings of AAAI 2020
 
 
+from __future__ import print_function
+from future.utils import listvalues
 from gmpy2 import mpq
 import perpetual_rules as perpetual
 import profiles
@@ -54,7 +56,7 @@ def calculate_statistics(profiles, support, wins, quota_compliance,
 # calculate the Gini coefficient
 def calculate_gini(x):
     n = len(x)
-    x = np.sort(x)
+    x = np.sort(x, axis=None)
     gini = (np.sum([(2 * i - n + 1) * x[i]
                     for i in range(n)], dtype=float)
             / n / sum(x))
@@ -73,7 +75,7 @@ def generate_2d_points(agents, mode, sigma):
         def within_bounds(point):
             return (point[0] <= 1 and point[0] >= -1 and
                     point[1] <= 1 and point[1] >= -1)
-        for i in range(len(agents) / 3):
+        for i in range(int(len(agents) / 3)):
             while True:
                 points[agents[i]] = (random.gauss(-0.5, sigma),
                                      random.gauss(-0.5, sigma))
@@ -88,10 +90,10 @@ def generate_2d_points(agents, mode, sigma):
     # normal distribution, 1/3 of agents centered on (-0.5,-0.5),
     #                      2/3 of agents on (0.5,0.5)
     elif mode == "eucl2":
-        for i in range(len(agents) / 3):
+        for i in range(int(len(agents) / 3)):
             points[agents[i]] = (random.gauss(-0.5, sigma),
                                  random.gauss(-0.5, sigma))
-        for i in range(len(agents) / 3, len(agents)):
+        for i in range(int(len(agents) / 3), len(agents)):
             points[agents[i]] = (random.gauss(0.5, sigma),
                                  random.gauss(0.5, sigma))
     # normal distribution, 1/5 of agents centered on (-0.5,-0.5),
@@ -160,7 +162,7 @@ def generate_2d_points(agents, mode, sigma):
             points[a] = (random.uniform(-1, 1),
                          random.uniform(-1, 1))
     else:
-        print "mode", mode, "not known"
+        print("mode", mode, "not known")
         quit()
     return points
 
@@ -229,7 +231,7 @@ def generate_instances(exp_specs):
         name = name.replace(" ", "").replace("'", "")
         picklefile = "pickle/experiments-" + name + ".pickle"
         if not exists(picklefile):
-            print "generating instances for spec", spec
+            print("generating instances for spec", spec)
             num_simulations, num_voters, num_cands, num_rounds,\
                 sigma, voterpointmode, candpointmode, approval_threshold = spec
 
@@ -258,12 +260,12 @@ def generate_instances(exp_specs):
                     history.append(prof)
                 instances[str(spec)].append(history)
 
-            print "writing instances to", picklefile
-            with open(picklefile, 'w') as f:
-                pickle.dump(instances[str(spec)], f)
+            print("writing instances to", picklefile)
+            with open(picklefile, 'wb') as f:
+                pickle.dump(instances[str(spec)], f, protocol=2)
         else:
-            print "loading instances from", picklefile
-            with open(picklefile) as f:
+            print("loading instances from", picklefile)
+            with open(picklefile, 'rb') as f:
                 instances[str(spec)] = pickle.load(f)
 
     return instances
@@ -308,7 +310,7 @@ def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
         aver_satisfaction[compute_rule].append(satisfaction)
 
         aver_influencegini[compute_rule].append(
-            calculate_gini(influence.values()))
+            calculate_gini(listvalues(influence)))
 
 
 def analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation):
@@ -370,34 +372,34 @@ def analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation):
                            "per_quota": 9,
                            "serial_dictatorship": 0}
 
-        print "aver_quotacompl"
+        print("aver_quotacompl")
         for rule1 in sorted(PERPETUAL_RULES,
                             key=lambda r: expected_order1[r]):
             for rule2 in sorted(PERPETUAL_RULES,
                                 key=lambda r: expected_order1[r]):
                 if expected_order1[rule1] == expected_order1[rule2]:
-                    print "x",
+                    print("x", end='')
                 elif (compare["aver_quotacompl"][rule1][rule2] >
                       compare["aver_quotacompl"][rule2][rule1]):
-                    print 1,
+                    print(1, end='')
                 else:
-                    print 0,
-            print str("{0:.3f}".format(np.mean(aver_quotacompl[rule1]))), rule1
+                    print(0, end='')
+            print(str("{0:.3f}".format(np.mean(aver_quotacompl[rule1]))), rule1)
 
-        print "max_quotadeviation"
+        print("max_quotadeviation")
         for rule1 in sorted(PERPETUAL_RULES,
                             key=lambda r: expected_order2[r]):
             for rule2 in sorted(PERPETUAL_RULES,
                                 key=lambda r: expected_order2[r]):
                 if expected_order2[rule1] == expected_order2[rule2]:
-                    print "x",
+                    print("x", end='')
                 elif (compare["max_quotadeviation"][rule1][rule2] <
                         compare["max_quotadeviation"][rule2][rule1]):
-                    print 1,
+                    print(1, end='')
                 else:
-                    print 0,
-            print str("{0:.3f}".format(np.mean(max_quotadeviation[rule1]))),
-            print rule1
+                    print(0, end='')
+            print(str("{0:.3f}".format(np.mean(max_quotadeviation[rule1]))), end='')
+            print(rule1)
 
 
 # lots of simulations, three statistics
@@ -465,13 +467,13 @@ for spec in exp_specs:
     aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
     aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
 
-    print
-    print spec, "with", len(curr_instances), "instances"
+    print()
+    print(spec, "with", len(curr_instances), "instances")
     av_size = np.average([len(prof.approval_sets[v])
                           for history in curr_instances
                           for prof in history
                           for v in prof.voters])
-    print "average approval set size:", av_size
+    print("average approval set size:", av_size)
     num_uncontr = 0
     num_total = 0
     for history in curr_instances:
@@ -480,12 +482,12 @@ for spec in exp_specs:
             sets = [set(a) for a in prof.approval_sets.values()]
             if len(set.intersection(*sets)) > 0:
                 num_uncontr += 1
-    print "uncontroversial (unanimous) profiles:",
-    print num_uncontr * 100. / num_total, "%"
+    print("uncontroversial (unanimous) profiles:", end='')
+    print(num_uncontr * 100. / num_total, "%")
 
     picklefile = "pickle/computation-" + name + ".pickle"
     if not exists(picklefile):
-        print "computing perpetual voting rules"
+        print("computing perpetual voting rules")
 
         for history in curr_instances:
             run_exp_for_history(history,
@@ -494,13 +496,13 @@ for spec in exp_specs:
                                 aver_satisfaction,
                                 aver_influencegini)
 
-        print "writing results to", picklefile
-        with open(picklefile, 'w') as f:
+        print("writing results to", picklefile)
+        with open(picklefile, 'wb') as f:
             pickle.dump([aver_quotacompl, max_quotadeviation,
-                         aver_satisfaction, aver_influencegini], f)
+                         aver_satisfaction, aver_influencegini], f, protocol=2)
     else:
-        print "loading results from", picklefile
-        with open(picklefile) as f:
+        print("loading results from", picklefile)
+        with open(picklefile, 'rb') as f:
             aver_quotacompl, max_quotadeviation, \
                 aver_satisfaction, aver_influencegini = pickle.load(f)
 
@@ -526,14 +528,14 @@ for spec in exp_specs:
             _, pvalue = stats.ttest_rel(np.asarray(aver_quotacompl[rule1]),
                                         np.asarray(aver_quotacompl[rule2]))
             if pvalue > 0.01:
-                print "aver_quotacompl for", rule1, "and", rule2,
-                print "not significant, p =", pvalue
+                print("aver_quotacompl for", rule1, "and", rule2, end='')
+                print ("not significant, p =", pvalue)
 
             _, pvalue = stats.ttest_rel(np.asarray(aver_influencegini[rule1]),
                                         np.asarray(aver_influencegini[rule2]))
             if pvalue > 0.01:
-                print "aver_influencegini for", rule1, "and", rule2,
-                print "not significant, p =", pvalue, rule1, rule2, pvalue
+                print("aver_influencegini for", rule1, "and", rule2, end='')
+                print("not significant, p =", pvalue, rule1, rule2, pvalue)
 
     plot_data(exp_name,
               aver_quotacompl,
@@ -542,4 +544,4 @@ for spec in exp_specs:
               aver_influencegini,
               rules)
 
-print "Done"
+print("Done")
