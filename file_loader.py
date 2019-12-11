@@ -14,14 +14,8 @@ script_dir = os.path.dirname(__file__)
 # All tsoi files should conform to the naming convention of *_date.tsoi where the date format should be sortable
 # from_date and to_date are strings that state the first file to consider and the last one.
 def start_tsoi_load(dir_name, max_approvals=None, from_date=None, to_date=None):
+	file_dir, files = get_file_names(dir_name)
 
-	input_path = os.path.join(script_dir, dir_name)
-	files = []
-	file_dir = None
-	for (dir_path, _, filenames) in os.walk(input_path):
-		file_dir = dir_path
-		files = filenames
-		break
 	approval_profiles = []
 	all_voters = set()
 	if file_dir is not None:
@@ -86,13 +80,8 @@ def load_tsoi_file(abs_path, max_approvals):
 # and a list of all voters from  these profiles
 # from_date and to_date are strings that state the first file to consider and the last one.
 def start_spotify_csv_load(dir_name, max_approval_percent=0.8, from_date=None, to_date=None):
-	input_path = os.path.join(script_dir, dir_name)
-	files = []
-	file_dir = None
-	for (dir_path, _, filenames) in os.walk(input_path):
-		file_dir = dir_path
-		files = filenames
-		break
+	file_dir, files = get_file_names(dir_name)
+
 	approval_profiles = []
 	all_voters = set()
 	candidates = set()
@@ -150,3 +139,14 @@ def load_spotify_csv_file(abs_path, used_candidates, profile, max_approval_perce
 						break
 					profile[voter].append(alternative_id)
 					used_candidates.add(alternative_id)
+
+
+def get_file_names(dir_name):
+	input_path = os.path.join(script_dir, dir_name)
+	files = []
+	file_dir = None
+	for (dir_path, _, filenames) in os.walk(input_path):
+		file_dir = dir_path
+		files = filenames
+		break
+	return file_dir, files
