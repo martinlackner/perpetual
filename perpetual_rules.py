@@ -44,6 +44,13 @@ SHORT_RULENAMES = {"per_pav": "Per. PAV",
                    }
 
 
+def compute_rule_sequence(rule, profile_list, weights):
+    winner_history = []
+    for profile in profile_list:
+        winner_history.append(compute_rule(rule, profile, weights))
+    return winner_history
+
+
 def compute_rule(rule, profile, weights=None):
     if rule == "per_pav":
         return per_pav(profile, weights)
