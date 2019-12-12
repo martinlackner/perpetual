@@ -571,7 +571,7 @@ print("Done")
 
 
 # experiments from files
-input_dirs = ["data/eurovision_song_contest_tsoi/",
+input_dirs = ["data/eurovision_song_contest_tsoi",
               "data/free_games_tsoi",
               "data/free_news_tsoi",
               "data/gross_games_tsoi",
@@ -599,10 +599,10 @@ for directory in input_dirs:
     else:
         continue
 
-    splits = len(history) / instance_size
+    splits = int(len(history) / instance_size)
     for i in range(0, splits-1):
         data_instances.append(history[i*instance_size:(i+1)*instance_size])
-    data_instances.append(history[splits-1*instance_size:])
+    data_instances.append(history[(splits-1)*instance_size:])
 
 print("number of instances:", len(data_instances))
 basic_stats(data_instances)
