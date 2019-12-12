@@ -16,6 +16,7 @@ def soi_example(dir_name, from_date=None, to_date=None):
 	for approval_profile in approval_profiles:
 		print("Perpetual Quota selects", perpetual.per_quota(approval_profile, weights))
 
+
 def csv_example(dir_name, from_date=None, to_date=None):
 	print("Spotify csv data")
 	approval_profiles, voters = \
@@ -24,6 +25,7 @@ def csv_example(dir_name, from_date=None, to_date=None):
 	weights = perpetual.init_weights("per_quota", voters)
 	for approval_profile in approval_profiles:
 		print("Perpetual Quota selects", perpetual.per_quota(approval_profile, weights))
+
 
 soi_example("data/", from_date="20170309", to_date="20170316")
 csv_example("spotify/", from_date="20161230", to_date="20161230")
