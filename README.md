@@ -19,7 +19,7 @@ implemented rules.
 
 ## Contributors
 
-The following people have contributed code to this package and provided help with technical and scientific questions (in alphabetic order): Benjamin Krenn, Martin Lackner.
+The following people have contributed code to this package and provided help with technical and scientific questions (in alphabetic order): [Benjamin Krenn](https://github.com/benjaminkrenn), [Martin Lackner](http://martin.lackner.xyz/).
 
 ## References
 
