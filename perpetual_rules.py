@@ -187,7 +187,8 @@ def per_nash(profile, weights):
             else:
                 if weights[v] == 0:
                     # multiply by a small epsilon
-                    score[c] *= mpq(1, max(sum(weights), len(profile.voters)))
+                    score[c] *= mpq(1, max(sum(weights.values()),
+                                           len(profile.voters)))
                 else:
                     score[c] *= weights[v]
     maxsc = max(score.values())
