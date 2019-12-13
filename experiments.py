@@ -533,8 +533,9 @@ for spec in exp_specs:
                                         np.asarray(aver_influencegini[rule2]))
             if pvalue > 0.01:
                 print "aver_influencegini for", rule1, "and", rule2,
-                print "not significant, p =", pvalue, rule1, rule2, pvalue
+                print "not significant, p =", pvalue
 
+    # create plots
     plot_data(exp_name,
               aver_quotacompl,
               max_quotadeviation,
