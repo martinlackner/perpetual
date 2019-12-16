@@ -51,7 +51,27 @@ def compute_rule_sequence(rule, profile_list, weights):
     return winner_history
 
 
-def compute_rule(rule, profile, weights=None):
+def compute_rule(rule, profile, weights=None, missing_rule=None):
+    if rule == "per_quota" or rule == "per_quota_min" \
+            or rule == "per_quota_mod":
+        voters = weights[0].keys()
+    else:
+        voters = weights.keys()
+    if missing_rule == "empty":
+        for voter in voters:
+            if voter not in profile.voters:
+                profile.voters.append(voter)
+                profile.approval_sets[voter] = []
+    elif missing_rule == "all":
+        for voter in voters:
+            if voter not in profile.voters:
+                profile.voters.append(voter)
+                profile.approval_sets[voter] = list(profile.cands)
+    else:
+        for voter in voters:
+            if voter not in profile.voters:
+                raise Exception("Missing voter")
+
     if rule == "per_pav":
         return per_pav(profile, weights)
     elif rule == "per_consensus":
@@ -276,7 +296,7 @@ def per_quota_min(profile, weights, supportbasedtiebreaking=False):
     for v in profile.voters:
         support = max([len([u for u in profile.voters
                             if c in profile.approval_sets[u]])
-                       for c in profile.approval_sets[v]])
+                       for c in profile.approval_sets[v]] + [0])
         per_quota[v] += mpq(support, len(profile.voters))
 
     score = {}
@@ -311,7 +331,7 @@ def per_quota(profile, weights, supportbasedtiebreaking=False):
     for v in profile.voters:
         support = max([len([u for u in profile.voters
                             if c in profile.approval_sets[u]])
-                       for c in profile.approval_sets[v]])
+                       for c in profile.approval_sets[v]] + [0])
         per_quota[v] += mpq(support, len(profile.voters))
 
     score = {}
@@ -346,7 +366,7 @@ def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
     for v in profile.voters:
         support[v] = max([len([u for u in profile.voters
                             if c in profile.approval_sets[u]])
-                       for c in profile.approval_sets[v]])
+                       for c in profile.approval_sets[v]] + [0])
 
     score = {}
     candidate_support = dict.fromkeys(profile.cands, 0)
@@ -375,7 +395,10 @@ def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
 
 
 def random_dictatorship(profile):
-    dictator = random.choice(profile.voters)
+    while True:
+        dictator = random.choice(profile.voters)
+        if len(profile.approval_sets[dictator]) > 0:
+            break
     return random.choice(profile.approval_sets[dictator])
 
 

@@ -58,7 +58,7 @@ def calculate_statistics(profiles, support, wins, quota_compliance,
     for v in profiles.voters:
         support[v] += max([len([u for u in profiles.voters
                                 if c in profiles.approval_sets[u]])
-                           for c in profiles.approval_sets[v]])
+                           for c in profiles.approval_sets[v]] + [0])
         if winner in profiles.approval_sets[v]:
             wins[v] += 1
             influence[v] += mpq(1, num_satisfied)
@@ -290,7 +290,8 @@ def generate_instances(exp_specs):
 
 
 def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
-                        aver_satisfaction, aver_influencegini):
+                        aver_satisfaction, aver_influencegini,
+                        missing_rule=None):
     voters = get_all_voters(history)
     cands = get_all_candidates(history)
 
@@ -308,7 +309,8 @@ def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
 
         for profile in history:
             winner = perpetual.compute_rule(compute_rule, profile,
-                                            weights)
+                                            weights,
+                                            missing_rule=missing_rule)
             assert(winner in cands)
             calculate_statistics(profile,
                                  support, wins,
@@ -598,6 +600,7 @@ input_dirs = ["data/eurovision_song_contest_tsoi",
               "data/viral_weekly_tsoi"]
 
 print("Now start experiments with files from", input_dirs)
+missing_rules = [None, "all", "empty"]
 
 aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
 max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
@@ -634,7 +637,7 @@ if not exists(picklefile):
                             aver_quotacompl,
                             max_quotadeviation,
                             aver_satisfaction,
-                            aver_influencegini)
+                            aver_influencegini, missing_rule = missing_rules[2])
 
     print("writing results to", picklefile)
     with open(picklefile, 'wb') as f:
