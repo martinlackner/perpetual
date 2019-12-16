@@ -433,7 +433,7 @@ def statistical_significance(aver_quotacompl, aver_influencegini):
                                         np.asarray(aver_influencegini[rule2]))
             if pvalue > 0.01:
                 print("aver_influencegini for", rule1, "and", rule2, end=' ')
-                print("not significant, p =", pvalue, rule1, rule2, pvalue)
+                print("not significant, p =", pvalue)
 
 
 def basic_stats(instances):
@@ -560,6 +560,7 @@ for spec in exp_specs:
 
     statistical_significance(aver_quotacompl, aver_influencegini)
 
+    # create plots
     plot_data(exp_name,
               aver_quotacompl,
               max_quotadeviation,
@@ -629,6 +630,7 @@ else:
 
 statistical_significance(aver_quotacompl, aver_influencegini)
 
+# create plots
 plot_data("tsoi_data",
           aver_quotacompl,
           max_quotadeviation,

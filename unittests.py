@@ -206,7 +206,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_majority": [3, 3, 2, 3, 3, 3],
                     "per_unitcost": [3, 2, 3, 3, 2, 3],
                     "per_reset": [3, 2, 3, 2, 3, 2],
-                    "per_nash": [3, 2, 3, 3, 2, 3],
+                    "per_nash": [3, 3, 2, 3, 2, 3],
                     "per_equality": [3, 2, 3, 2, 3, 2],
                     "per_phragmen": [3, 2, 3, 3, 2, 3],
                     "per_quota": [3, 2, 3, 3, 2, 3],
