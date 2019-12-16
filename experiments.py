@@ -26,19 +26,6 @@ from scipy import stats
 
 ########################################################################
 
-def get_all_candidates(history):
-    candidates = set()
-    for prof in history:
-        candidates = candidates.union(prof.cands)
-    return list(candidates)
-
-def get_all_voters(history):
-    voters = set()
-    for prof in history:
-        voters = voters.union(prof.voters)
-    return list(voters)
-
-
 def save_twodim_dict_as_csv(name, indexrow, indexcol, dictionary):
     with open('csv/' + name + '.csv', 'w') as csvfile:
         csvwriter = csv.writer(csvfile, lineterminator='\n')
@@ -48,6 +35,20 @@ def save_twodim_dict_as_csv(name, indexrow, indexcol, dictionary):
                                + [dictionary[i][j] for j in indexcol])
 
 ########################################################################
+
+
+def get_all_candidates(history):
+    candidates = set()
+    for prof in history:
+        candidates = candidates.union(prof.cands)
+    return list(candidates)
+
+
+def get_all_voters(history):
+    voters = set()
+    for prof in history:
+        voters = voters.union(prof.voters)
+    return list(voters)
 
 
 def calculate_statistics(profiles, support, wins, quota_compliance,
@@ -182,8 +183,8 @@ def generate_2d_points(agents, mode, sigma):
     return points
 
 
-def plot_data(exp_name, aver_quotacompl, max_quotadeviation, aver_satisfaction,
-              aver_influencegini, rules):
+def plot_data(exp_name, aver_quotacompl, max_quotadeviation,
+              aver_satisfaction, aver_influencegini, rules):
     def generate_boxplot(data, bottom, top, name):
             pos = [0.06 + 0.11 * i for i in range(len(rules))]
             plt.boxplot([data[compute_rule] for compute_rule in rules],
@@ -220,7 +221,8 @@ def plot_data(exp_name, aver_quotacompl, max_quotadeviation, aver_satisfaction,
                      "max_quota_deviation_" + exp_name)
 
     # normalized average satisfaction
-    norm_aver_satisfaction = {compute_rule: [] for compute_rule in rules}
+    norm_aver_satisfaction = \
+        {compute_rule: [] for compute_rule in rules}
     for compute_rule in rules:
         norm_aver_satisfaction[compute_rule] = [
             aver_satisfaction[compute_rule][i] / aver_satisfaction["av"][i]
@@ -248,7 +250,8 @@ def generate_instances(exp_specs):
         if not exists(picklefile):
             print("generating instances for spec", spec)
             num_simulations, num_voters, num_cands, num_rounds,\
-                sigma, voterpointmode, candpointmode, approval_threshold = spec
+                sigma, voterpointmode, candpointmode, \
+                approval_threshold = spec
 
             instances[str(spec)] = []
             for _ in range(num_simulations):
@@ -304,7 +307,8 @@ def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
         influence = dict.fromkeys(voters, 0)
 
         for profile in history:
-            winner = perpetual.compute_rule(compute_rule, profile, weights)
+            winner = perpetual.compute_rule(compute_rule, profile,
+                                            weights)
             assert(winner in cands)
             calculate_statistics(profile,
                                  support, wins,
@@ -314,7 +318,7 @@ def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
         quota_compliance = float(sum(quota_compliance.values()))
         quota_compliance = (quota_compliance
                             / len(history)
-                            / len(profile.voters))   # TODO should this be changed to len(voters)?
+                            / len(profile.voters))
         aver_quotacompl[compute_rule].append(quota_compliance)
 
         quota_deviation = float(max(quota_deviation.values()))
@@ -343,7 +347,8 @@ def analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation):
         for rule1 in PERPETUAL_RULES:
             for rule2 in PERPETUAL_RULES:
                 for i in range(num_samples):
-                    if aver_quotacompl[rule1][i] > aver_quotacompl[rule2][i]:
+                    if aver_quotacompl[rule1][i] >\
+                            aver_quotacompl[rule2][i]:
                         compare["aver_quotacompl"][rule1][rule2] += 1
                     if (max_quotadeviation[rule1][i] >
                             max_quotadeviation[rule2][i]):
@@ -399,7 +404,8 @@ def analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation):
                     print(1, end=' ')
                 else:
                     print(0, end=' ')
-            print(str("{0:.3f}".format(np.mean(aver_quotacompl[rule1]))), rule1)
+            print(str("{0:.3f}".format(np.mean(aver_quotacompl[rule1])))
+                  , rule1)
 
         print("max_quotadeviation")
         for rule1 in sorted(PERPETUAL_RULES,
@@ -413,7 +419,8 @@ def analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation):
                     print(1, end=' ')
                 else:
                     print(0, end=' ')
-            print(str("{0:.3f}".format(np.mean(max_quotadeviation[rule1]))), end=' ')
+            print(str("{0:.3f}".format(np.mean(
+                max_quotadeviation[rule1]))), end=' ')
             print(rule1)
 
 
@@ -423,16 +430,22 @@ def statistical_significance(aver_quotacompl, aver_influencegini):
             if rule1 == rule2:
                 continue
 
-            _, pvalue = stats.ttest_rel(np.asarray(aver_quotacompl[rule1]),
-                                        np.asarray(aver_quotacompl[rule2]))
+            _, pvalue = stats.ttest_rel(np.asarray(
+                                            aver_quotacompl[rule1]),
+                                        np.asarray(
+                                            aver_quotacompl[rule2]))
             if pvalue > 0.01:
-                print("aver_quotacompl for", rule1, "and", rule2, end=' ')
+                print("aver_quotacompl for", rule1, "and", rule2,
+                      end=' ')
                 print("not significant, p =", pvalue)
 
-            _, pvalue = stats.ttest_rel(np.asarray(aver_influencegini[rule1]),
-                                        np.asarray(aver_influencegini[rule2]))
+            _, pvalue = stats.ttest_rel(np.asarray(
+                                            aver_influencegini[rule1]),
+                                        np.asarray(
+                                            aver_influencegini[rule2]))
             if pvalue > 0.01:
-                print("aver_influencegini for", rule1, "and", rule2, end=' ')
+                print("aver_influencegini for", rule1, "and", rule2,
+                      end=' ')
                 print("not significant, p =", pvalue)
 
 
@@ -458,7 +471,7 @@ def basic_stats(instances):
 # lots of simulations, three statistics
 # 1) AV score
 # 2) perpetual quota: sum up over all rounds,
-#              how many voters had perp per_quota satisfied in this round
+#             how many voters had perp per_quota satisfied in this round
 # 3) gini of influence: again, normalize by optimum
 # 4) not implemented: max dry spell
 
@@ -513,6 +526,7 @@ rules = ["av",
          "per_unitcost",
          "per_consensus",
          "serial_dictatorship",
+         "per_quota_mod"
          ]
 
 # run experiments, analyze and plot
@@ -549,7 +563,8 @@ for spec in exp_specs:
         print("writing results to", picklefile)
         with open(picklefile, 'wb') as f:
             pickle.dump([aver_quotacompl, max_quotadeviation,
-                         aver_satisfaction, aver_influencegini], f, protocol=2)
+                         aver_satisfaction, aver_influencegini], f,
+                        protocol=2)
     else:
         print("loading results from", picklefile)
         with open(picklefile, 'rb') as f:
@@ -593,16 +608,19 @@ data_instances = []
 instance_size = 30
 for directory in input_dirs:
     if directory.endswith("tsoi"):
-        history, _ = file_loader.start_tsoi_load(directory, max_approvals=20)
+        history, _ = file_loader.start_tsoi_load(directory,
+                                                 max_approvals=20)
     elif directory.endswith("csv"):
-        history, _ = file_loader.start_spotify_csv_load(directory,
-                                                        max_approval_percent=0.6)
+        history, _ = \
+            file_loader.start_spotify_csv_load(directory,
+                                               max_approval_percent=0.6)
     else:
         continue
 
     splits = int(len(history) / instance_size)
     for i in range(0, splits-1):
-        data_instances.append(history[i*instance_size:(i+1)*instance_size])
+        data_instances.append(
+            history[i*instance_size:(i+1)*instance_size])
     data_instances.append(history[(splits-1)*instance_size:])
 
 print("number of instances:", len(data_instances))
@@ -621,7 +639,8 @@ if not exists(picklefile):
     print("writing results to", picklefile)
     with open(picklefile, 'wb') as f:
         pickle.dump([aver_quotacompl, max_quotadeviation,
-                     aver_satisfaction, aver_influencegini], f, protocol=2)
+                     aver_satisfaction, aver_influencegini], f,
+                    protocol=2)
 else:
     print("loading results from", picklefile)
     with open(picklefile, 'rb') as f:
