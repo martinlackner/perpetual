@@ -341,9 +341,9 @@ def per_quota(profile, weights, supportbasedtiebreaking=False):
 # based on qu_k - sat_k
 def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
     per_quota, satisfaction = weights
-
+    support = {}
     for v in profile.voters:
-        support = max([len([u for u in profile.voters
+        support[v] = max([len([u for u in profile.voters
                             if c in profile.approval_sets[u]])
                        for c in profile.approval_sets[v]])
 
@@ -367,7 +367,7 @@ def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
         if winner in profile.approval_sets[v]:
             satisfaction[v] += 1
 
-        per_quota[v] += mpq(support, len(profile.voters))
+        per_quota[v] += mpq(support[v], len(profile.voters))
 
     # tied_winners = [c for c in profiles.cands if score[c] == maxsc]
     return winner
