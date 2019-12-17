@@ -320,14 +320,14 @@ def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
         quota_compliance = float(sum(quota_compliance.values()))
         quota_compliance = (quota_compliance
                             / len(history)
-                            / len(profile.voters))
+                            / len(voters))
         aver_quotacompl[compute_rule].append(quota_compliance)
 
         quota_deviation = float(max(quota_deviation.values()))
         max_quotadeviation[compute_rule].append(quota_deviation)
 
         satisfaction = float(sum(wins.values()))
-        satisfaction = satisfaction / len(history) / len(profile.voters)
+        satisfaction = satisfaction / len(history) / len(voters)
         aver_satisfaction[compute_rule].append(satisfaction)
 
         aver_influencegini[compute_rule].append(
@@ -598,66 +598,85 @@ input_dirs = ["data/eurovision_song_contest_tsoi",
               "data/paid_news_tsoi",
               "data/weekly_tsoi",
               "data/viral_weekly_tsoi"]
-
-print("Now start experiments with files from", input_dirs)
+# Rules for replacing missing voter data, None leads to exception
 missing_rules = [None, "all", "empty"]
 
-aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
-max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
-aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
-aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
+for missing_rule in missing_rules[1:]:
+    print("Now start experiments with files from", input_dirs, end=' ')
+    print("With replacement rule ", missing_rule)
 
-data_instances = []
-instance_size = 30
-for directory in input_dirs:
-    if directory.endswith("tsoi"):
-        history, _ = file_loader.start_tsoi_load(directory,
-                                                 max_approvals=20)
-    elif directory.endswith("csv"):
-        history, _ = \
-            file_loader.start_spotify_csv_load(directory,
-                                               max_approval_percent=0.6)
+    aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
+    max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
+    aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
+    aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
+
+    data_instances = []
+    instance_size = 30
+    multiplier = 1
+    percent = 0.9
+    for _ in range(0, 6):
+        for directory in input_dirs:
+            if directory.endswith("tsoi"):
+                if directory is "data/eurovision_song_contest_tsoi"\
+                        and multiplier > 3:
+                    continue
+                history, _ = \
+                    file_loader.start_tsoi_load(
+                        directory,
+                        max_approvals=2*multiplier)
+            elif directory.endswith("csv"):
+                history, _ = \
+                    file_loader.\
+                        start_spotify_csv_load(
+                            directory,
+                            approval_percent=percent)
+            else:
+                continue
+
+            splits = int(len(history) / instance_size)
+            for i in range(0, splits):
+                data_instances.append(
+                    history[i*instance_size:(i+1)*instance_size])
+        multiplier *= 2
+        percent -= 0.14
+
+    print("number of instances:", len(data_instances))
+    basic_stats(data_instances)
+
+    picklefile = "pickle/computation-" + "tsoi_data_" + missing_rule \
+                 + ".pickle"
+    if not exists(picklefile):
+        print("computing perpetual voting rules")
+        i=1
+        for history in data_instances:
+            print(i)
+            i+=1
+            run_exp_for_history(history,
+                                aver_quotacompl,
+                                max_quotadeviation,
+                                aver_satisfaction,
+                                aver_influencegini,
+                                missing_rule=missing_rule)
+
+        print("writing results to", picklefile)
+        with open(picklefile, 'wb') as f:
+            pickle.dump([aver_quotacompl, max_quotadeviation,
+                         aver_satisfaction, aver_influencegini], f,
+                        protocol=2)
     else:
-        continue
+        print("loading results from", picklefile)
+        with open(picklefile, 'rb') as f:
+            aver_quotacompl, max_quotadeviation, \
+            aver_satisfaction, aver_influencegini = pickle.load(f)
 
-    splits = int(len(history) / instance_size)
-    for i in range(0, splits-1):
-        data_instances.append(
-            history[i*instance_size:(i+1)*instance_size])
-    data_instances.append(history[(splits-1)*instance_size:])
+    statistical_significance(aver_quotacompl, aver_influencegini)
 
-print("number of instances:", len(data_instances))
-basic_stats(data_instances)
+    # create plots
+    plot_data("tsoi_data_" + missing_rule,
+              aver_quotacompl,
+              max_quotadeviation,
+              aver_satisfaction,
+              aver_influencegini,
+              rules)
 
-picklefile = "pickle/computation-" + "tsoi_data" + ".pickle"
-if not exists(picklefile):
-    print("computing perpetual voting rules")
-    for history in data_instances:
-        run_exp_for_history(history,
-                            aver_quotacompl,
-                            max_quotadeviation,
-                            aver_satisfaction,
-                            aver_influencegini, missing_rule = missing_rules[2])
-
-    print("writing results to", picklefile)
-    with open(picklefile, 'wb') as f:
-        pickle.dump([aver_quotacompl, max_quotadeviation,
-                     aver_satisfaction, aver_influencegini], f,
-                    protocol=2)
-else:
-    print("loading results from", picklefile)
-    with open(picklefile, 'rb') as f:
-        aver_quotacompl, max_quotadeviation, \
-        aver_satisfaction, aver_influencegini = pickle.load(f)
-
-statistical_significance(aver_quotacompl, aver_influencegini)
-
-# create plots
-plot_data("tsoi_data",
-          aver_quotacompl,
-          max_quotadeviation,
-          aver_satisfaction,
-          aver_influencegini,
-          rules)
-
-print("Done with files")
+    print("Done with files and missing rule")

@@ -90,7 +90,7 @@ def load_tsoi_file(abs_path, max_approvals):
 # and a list of all voters from  these profiles
 # from_date and to_date are strings that state the first file to
 # consider and the last one.
-def start_spotify_csv_load(dir_name, max_approval_percent=0.8,
+def start_spotify_csv_load(dir_name, approval_percent=0.8,
 						   from_date=None, to_date=None):
 	file_dir, files = get_file_names(dir_name)
 
@@ -127,7 +127,7 @@ def start_spotify_csv_load(dir_name, max_approval_percent=0.8,
 					candidates = set()
 				load_spotify_csv_file(os.path.join(file_dir, f),
 									  candidates, profile,
-									  max_approval_percent)
+									  approval_percent)
 	if len(profile) > 0:
 		profiles.ApprovalProfile(list(profile.keys()), candidates,
 								 profile)
@@ -143,7 +143,7 @@ def start_spotify_csv_load(dir_name, max_approval_percent=0.8,
 # max_approval_percent streams
 # are added to the profile for the given voter
 def load_spotify_csv_file(abs_path, used_candidates, profile,
-						  max_approval_percent):
+						  approval_percent):
 	with open(abs_path, "r") as f:
 		lines = f.readlines()
 		if len(lines) > 1:
@@ -155,7 +155,7 @@ def load_spotify_csv_file(abs_path, used_candidates, profile,
 					if voter is None:
 						voter = x[-2]
 						minimum_streams = float(
-							x[-4]) * max_approval_percent
+							x[-4]) * approval_percent
 						profile[voter] = []
 					alternative_id = x[-1].strip()
 					streams = float(x[-4])
