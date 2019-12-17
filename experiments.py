@@ -6,7 +6,10 @@
 
 from __future__ import print_function
 from future.utils import listvalues
-from gmpy2 import mpq
+try:
+    from gmpy2 import mpq as Fraction
+except ImportError:
+    from fractions import Fraction
 
 import file_loader
 import perpetual_rules as perpetual
@@ -61,8 +64,8 @@ def calculate_statistics(profiles, support, wins, quota_compliance,
                            for c in profiles.approval_sets[v]] + [0])
         if winner in profiles.approval_sets[v]:
             wins[v] += 1
-            influence[v] += mpq(1, num_satisfied)
-        per_quota = mpq(support[v], len(profiles.voters))
+            influence[v] += Fraction(1, num_satisfied)
+        per_quota = Fraction(support[v], len(profiles.voters))
         if per_quota - wins[v] < 1:
             quota_compliance[v] += 1
         quota_maxdeviation[v] = max(quota_maxdeviation[v],
@@ -647,10 +650,7 @@ for missing_rule in missing_rules[1:]:
                  + ".pickle"
     if not exists(picklefile):
         print("computing perpetual voting rules")
-        i=1
         for history in data_instances:
-            print(i)
-            i+=1
             run_exp_for_history(history,
                                 aver_quotacompl,
                                 max_quotadeviation,

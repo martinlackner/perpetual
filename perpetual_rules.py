@@ -2,8 +2,11 @@
 
 # Author: Martin Lackner
 
+try:
+    from gmpy2 import mpq as Fraction
+except ImportError:
+    from fractions import Fraction
 
-from gmpy2 import mpq
 import random
 
 
@@ -138,7 +141,7 @@ def per_pav(profile, weights):
     winner = [c for c in profile.cands if score[c] == maxsc][0]
     for v in profile.voters:
         if winner in profile.approval_sets[v]:
-            weights[v] = mpq(1, (mpq(1) / weights[v] + 1))  # 1/x --> 1/(x+1)
+            weights[v] = Fraction(1, (Fraction(1) / weights[v] + 1))  # 1/x --> 1/(x+1)
     # tied_winners = [c for c in profiles.cands if score[c] == maxsc]
     return winner
 
@@ -177,7 +180,7 @@ def __per_subtraction(profile, weights, subtr_mode="numvoters"):
     for v in profile.voters:
         if subtr_mode == "per_consensus":
             if winner in profile.approval_sets[v] and weights[v] > 0:
-                weights[v] -= mpq(len(profile.voters),
+                weights[v] -= Fraction(len(profile.voters),
                                   candidate_support[winner])
         elif subtr_mode == "per_2nd_prize":
             second_prize = sorted(score.values())[-2]
@@ -186,7 +189,7 @@ def __per_subtraction(profile, weights, subtr_mode="numvoters"):
                 weights[v] *= factor
         elif subtr_mode == "numvoters_half":
             if winner in profile.approval_sets[v] and weights[v] > 0:
-                weights[v] -= mpq(len(profile.voters),
+                weights[v] -= Fraction(len(profile.voters),
                                   2 * candidate_support[winner])
         elif subtr_mode == "per_unitcost":
             if winner in profile.approval_sets[v]:
@@ -214,7 +217,7 @@ def per_nash(profile, weights):
             else:
                 if weights[v] == 0:
                     # multiply by a small epsilon
-                    score[c] *= mpq(1, max(sum(weights.values()),
+                    score[c] *= Fraction(1, max(sum(weights.values()),
                                            len(profile.voters)))
                 else:
                     score[c] *= weights[v]
@@ -272,7 +275,7 @@ def per_phragmen(profile, weights):
             averageload[c] = float('inf')
         else:
             while True:
-                averageload[c] = mpq(1 + sum([weights[v] for v in supporters]),
+                averageload[c] = Fraction(1 + sum([weights[v] for v in supporters]),
                                      len(supporters))
                 if averageload[c] >= max([weights[v] for v in supporters]):
                     break
@@ -297,7 +300,7 @@ def per_quota_min(profile, weights, supportbasedtiebreaking=False):
         support = max([len([u for u in profile.voters
                             if c in profile.approval_sets[u]])
                        for c in profile.approval_sets[v]] + [0])
-        per_quota[v] += mpq(support, len(profile.voters))
+        per_quota[v] += Fraction(support, len(profile.voters))
 
     score = {}
     candidate_support = dict.fromkeys(profile.cands, 0)
@@ -332,7 +335,7 @@ def per_quota(profile, weights, supportbasedtiebreaking=False):
         support = max([len([u for u in profile.voters
                             if c in profile.approval_sets[u]])
                        for c in profile.approval_sets[v]] + [0])
-        per_quota[v] += mpq(support, len(profile.voters))
+        per_quota[v] += Fraction(support, len(profile.voters))
 
     score = {}
     candidate_support = dict.fromkeys(profile.cands, 0)
@@ -388,7 +391,7 @@ def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
         if winner in profile.approval_sets[v]:
             satisfaction[v] += 1
 
-        per_quota[v] += mpq(support[v], len(profile.voters))
+        per_quota[v] += Fraction(support[v], len(profile.voters))
 
     # tied_winners = [c for c in profiles.cands if score[c] == maxsc]
     return winner
