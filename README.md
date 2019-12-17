@@ -18,6 +18,11 @@ implemented rules.
 * A simple example can be found in [examples.py](examples.py).
 * The code for running the numerical simulations in [1] are contained in [experiments.py](experiments.py).
 
+To start the unit tests run:
+
+``
+python -m unittests.unittests
+``
 ## Contributors
 
 The following people have contributed code to this package and provided help with technical and scientific questions (in alphabetic order): [Benjamin Krenn](https://github.com/benjaminkrenn), [Martin Lackner](http://martin.lackner.xyz/).

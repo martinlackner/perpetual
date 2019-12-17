@@ -4,6 +4,8 @@
 
 
 import unittest
+
+import file_loader
 import perpetual_rules as perpetual
 import profiles
 
@@ -233,6 +235,43 @@ class TestPerpetualRules(unittest.TestCase):
                                  msg=rule + " failed in round " + str(i))
                 if rule == "subtraction_numvoters":
                     self.assertEqual(sum(weights.values()), len(voters))
+
+    # test perpetual rules on data from files
+    def test_perpetualrules_simple_files(self):
+        k = 6
+        decision = {"av": [3]*k,
+                    "per_pav": [3, 2, 3, 3, 2, 3],
+                    "per_consensus": [3, 2, 3, 3, 2, 3],
+                    "per_majority": [3, 3, 2, 3, 3, 3],
+                    "per_unitcost": [3, 2, 3, 3, 2, 3],
+                    "per_reset": [3, 2, 3, 2, 3, 2],
+                    "per_nash": [3, 3, 2, 3, 2, 3],
+                    "per_equality": [3, 2, 3, 2, 3, 2],
+                    "per_phragmen": [3, 2, 3, 3, 2, 3],
+                    "per_quota": [3, 2, 3, 3, 2, 3],
+                    "per_quota_mod": [3, 2, 3, 3, 2, 3],
+                    "per_2nd_prize": [3, 3, 2, 3, 3, 3]}
+
+        self.longMessage = True
+
+        approval_profiles, _ = file_loader.start_tsoi_load("unittests")
+        voters = approval_profiles[0].voters
+        cands = approval_profiles[0].cands
+
+        for rule in perpetual.PERPETUAL_RULES:
+            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+                continue
+
+            weights = perpetual.init_weights(rule, voters)
+            i = 0
+            for profile in approval_profiles:
+                self.assertEqual(perpetual.compute_rule(rule, profile,
+                                                        weights),
+                                 decision[rule][i],
+                                 msg=rule + " failed in round " + str(i))
+                if rule == "subtraction_numvoters":
+                    self.assertEqual(sum(weights.values()), len(voters))
+                i += 1
 
 
 if __name__ == '__main__':
