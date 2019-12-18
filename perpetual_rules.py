@@ -1,6 +1,7 @@
 # Implementations of perpetual voting rules
 
 # Author: Martin Lackner
+from future.utils import iteritems
 
 try:
     from gmpy2 import mpq as Fraction
@@ -8,7 +9,7 @@ except ImportError:
     from fractions import Fraction
 
 import random
-
+import copy
 
 PERPETUAL_RULES = ["per_pav",
                    "per_consensus",
@@ -60,6 +61,7 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         voters = weights[0].keys()
     else:
         voters = weights.keys()
+    profile = copy.deepcopy(profile)
     if missing_rule == "empty":
         for voter in voters:
             if voter not in profile.voters:
@@ -70,6 +72,9 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
             if voter not in profile.voters:
                 profile.voters.append(voter)
                 profile.approval_sets[voter] = list(profile.cands)
+
+    elif missing_rule == "ignore":
+        pass
     else:
         for voter in voters:
             if voter not in profile.voters:
@@ -398,10 +403,9 @@ def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
 
 
 def random_dictatorship(profile):
-    while True:
-        dictator = random.choice(profile.voters)
-        if len(profile.approval_sets[dictator]) > 0:
-            break
+    voters = [v for (v, appr) in iteritems(profile.approval_sets)
+              if appr is not []]
+    dictator = random.choice(voters)
     return random.choice(profile.approval_sets[dictator])
 
 

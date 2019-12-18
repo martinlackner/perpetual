@@ -7,6 +7,7 @@ import numpy.random as random
 from scipy.spatial.distance import euclidean
 from future.utils import iteritems
 
+
 # approval profile
 class ApprovalProfile(object):
     def __init__(self, voters, cands, approval_sets):
@@ -26,6 +27,14 @@ class ApprovalProfile(object):
         return ("Profile with %d votes and %d candidates: "
                 % (len(self.voters), len(self.cands))
                 + ', '.join(map(str, self.approval_sets.values())))
+
+    def __deepcopy__(self, memodict=None):
+        if memodict is None:
+            memodict = {}
+        voters = list(self.voters)
+        approvals_sets = copy.deepcopy(self.approval_sets)
+        cands = list(self.cands)
+        return ApprovalProfile(voters, cands, approvals_sets)
 
 
 # uniformly random profile:

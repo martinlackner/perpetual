@@ -238,7 +238,6 @@ class TestPerpetualRules(unittest.TestCase):
 
     # test perpetual rules on data from files
     def test_perpetualrules_simple_files(self):
-        k = 6
         decision = {"av": [3]*k,
                     "per_pav": [3, 2, 3, 3, 2, 3],
                     "per_consensus": [3, 2, 3, 3, 2, 3],
@@ -256,7 +255,6 @@ class TestPerpetualRules(unittest.TestCase):
 
         approval_profiles, _ = file_loader.start_tsoi_load("unittests")
         voters = approval_profiles[0].voters
-        cands = approval_profiles[0].cands
 
         for rule in perpetual.PERPETUAL_RULES:
             if rule == "serial_dictatorship" or rule == "random_dictatorship":
