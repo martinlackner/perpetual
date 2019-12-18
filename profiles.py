@@ -1,7 +1,7 @@
 # Preferences profiles for perpetual voting rules
 
 # Author: Martin Lackner
-
+import copy
 
 import numpy.random as random
 from scipy.spatial.distance import euclidean

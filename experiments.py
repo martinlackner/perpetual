@@ -58,10 +58,16 @@ def calculate_statistics(profiles, support, wins, quota_compliance,
                          quota_maxdeviation, influence, winner):
     num_satisfied = len([v for v in profiles.voters
                          if winner in profiles.approval_sets[v]])
+
+    cand_support = {c: 0 for c in profiles.cands}
+    for voter in profiles.voters:
+        for c in profiles.approval_sets[voter]:
+            cand_support[c] += 1
+
     for v in profiles.voters:
-        support[v] += max([len([u for u in profiles.voters
-                                if c in profiles.approval_sets[u]])
+        support[v] += max([cand_support[c]
                            for c in profiles.approval_sets[v]] + [0])
+
         if winner in profiles.approval_sets[v]:
             wins[v] += 1
             influence[v] += Fraction(1, num_satisfied)
@@ -602,7 +608,7 @@ input_dirs = ["data/eurovision_song_contest_tsoi",
               "data/weekly_tsoi",
               "data/viral_weekly_tsoi"]
 # Rules for replacing missing voter data, None leads to exception
-missing_rules = [None, "all", "empty"]
+missing_rules = [None, "all", "empty", "ignore"]
 
 for missing_rule in missing_rules[1:]:
     print("Now start experiments with files from", input_dirs, end=' ')
@@ -614,7 +620,7 @@ for missing_rule in missing_rules[1:]:
     aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
 
     data_instances = []
-    instance_size = 30
+    instance_size = 20
     multiplier = 1
     percent = 0.9
     for _ in range(0, 6):

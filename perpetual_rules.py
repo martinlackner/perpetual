@@ -61,13 +61,14 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         voters = weights[0].keys()
     else:
         voters = weights.keys()
-    profile = copy.deepcopy(profile)
     if missing_rule == "empty":
+        profile = copy.deepcopy(profile)
         for voter in voters:
             if voter not in profile.voters:
                 profile.voters.append(voter)
                 profile.approval_sets[voter] = []
     elif missing_rule == "all":
+        profile = copy.deepcopy(profile)
         for voter in voters:
             if voter not in profile.voters:
                 profile.voters.append(voter)
@@ -301,9 +302,13 @@ def per_phragmen(profile, weights):
 def per_quota_min(profile, weights, supportbasedtiebreaking=False):
     per_quota, satisfaction = weights
 
+    cand_support = {c: 0 for c in profile.cands}
+    for voter in profile.voters:
+        for c in profile.approval_sets[voter]:
+            cand_support[c] += 1
+
     for v in profile.voters:
-        support = max([len([u for u in profile.voters
-                            if c in profile.approval_sets[u]])
+        support = max([cand_support[c]
                        for c in profile.approval_sets[v]] + [0])
         per_quota[v] += Fraction(support, len(profile.voters))
 
@@ -336,9 +341,13 @@ def per_quota_min(profile, weights, supportbasedtiebreaking=False):
 def per_quota(profile, weights, supportbasedtiebreaking=False):
     per_quota, satisfaction = weights
 
+    cand_support = {c: 0 for c in profile.cands}
+    for voter in profile.voters:
+        for c in profile.approval_sets[voter]:
+            cand_support[c] += 1
+
     for v in profile.voters:
-        support = max([len([u for u in profile.voters
-                            if c in profile.approval_sets[u]])
+        support = max([cand_support[c]
                        for c in profile.approval_sets[v]] + [0])
         per_quota[v] += Fraction(support, len(profile.voters))
 
@@ -371,10 +380,14 @@ def per_quota(profile, weights, supportbasedtiebreaking=False):
 def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
     per_quota, satisfaction = weights
     support = {}
+    cand_support = {c: 0 for c in profile.cands}
+    for voter in profile.voters:
+        for c in profile.approval_sets[voter]:
+            cand_support[c] += 1
+
     for v in profile.voters:
-        support[v] = max([len([u for u in profile.voters
-                            if c in profile.approval_sets[u]])
-                       for c in profile.approval_sets[v]] + [0])
+        support[v] = max([cand_support[c]
+                         for c in profile.approval_sets[v]] + [0])
 
     score = {}
     candidate_support = dict.fromkeys(profile.cands, 0)
@@ -404,7 +417,7 @@ def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
 
 def random_dictatorship(profile):
     voters = [v for (v, appr) in iteritems(profile.approval_sets)
-              if appr is not []]
+              if len(appr) > 0]
     dictator = random.choice(voters)
     return random.choice(profile.approval_sets[dictator])
 
