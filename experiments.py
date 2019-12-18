@@ -5,25 +5,25 @@
 
 
 from __future__ import print_function
+
+from os import makedirs
+from os.path import isdir
+
 from future.utils import listvalues
 try:
     from gmpy2 import mpq as Fraction
 except ImportError:
     from fractions import Fraction
 
-import file_loader
 import perpetual_rules as perpetual
-import profiles
-import random
+
 import numpy as np
 import perpetual_rules
 from perpetual_rules import PERPETUAL_RULES, SHORT_RULENAMES
 import matplotlib
 import matplotlib.pyplot as plt
 import csv
-from os.path import exists, isdir
-from os import makedirs
-import pickle
+
 from scipy import stats
 
 
@@ -38,6 +38,19 @@ def save_twodim_dict_as_csv(name, indexrow, indexcol, dictionary):
                                + [dictionary[i][j] for j in indexcol])
 
 ########################################################################
+
+
+rules = ["av",
+         "per_pav",
+         "per_equality",
+         "per_quota",
+         "per_nash",
+         "per_reset",
+         "per_unitcost",
+         "per_consensus",
+         "serial_dictatorship",
+         "per_quota_mod"
+         ]
 
 
 def get_all_candidates(history):
@@ -86,110 +99,6 @@ def calculate_gini(x):
                     for i in range(n)], dtype=float)
             / n / sum(x))
     return gini
-
-
-# generate a list of 2d coordinates subject to
-# various distributions
-def generate_2d_points(agents, mode, sigma):
-
-    points = {}
-    # normal distribution, 1/3 of agents centered on (-0.5,-0.5),
-    #                      2/3 of agents on (0.5,0.5)
-    #                      all within [-1,1]x[-1,1]
-    if mode == "eucl1":
-        def within_bounds(point):
-            return (point[0] <= 1 and point[0] >= -1 and
-                    point[1] <= 1 and point[1] >= -1)
-        for i in range(int(len(agents) / 3)):
-            while True:
-                points[agents[i]] = (random.gauss(-0.5, sigma),
-                                     random.gauss(-0.5, sigma))
-                if within_bounds(points[agents[i]]):
-                    break
-        for i in range(len(agents) / 3, len(agents)):
-            while True:
-                points[agents[i]] = (random.gauss(0.5, sigma),
-                                     random.gauss(0.5, sigma))
-                if within_bounds(points[agents[i]]):
-                    break
-    # normal distribution, 1/3 of agents centered on (-0.5,-0.5),
-    #                      2/3 of agents on (0.5,0.5)
-    elif mode == "eucl2":
-        for i in range(int(len(agents) / 3)):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(int(len(agents) / 3), len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
-    # normal distribution, 1/5 of agents centered on (-0.5,-0.5),
-    #                      4/5 of agents on (0.5,0.5)
-    elif mode == "eucl4":
-        for i in range(len(agents) / 5):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(len(agents) / 5, len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
-    # normal distribution, 3/5 of agents centered on (-0.25,0),
-    #                      2/5 of agents on (0.25,0)
-    elif mode == "eucl6":
-        for i in range(2 * len(agents) / 5):
-            points[agents[i]] = (random.gauss(-0.25, sigma),
-                                 random.gauss(0, sigma))
-        for i in range(2 * len(agents) / 5, len(agents)):
-            points[agents[i]] = (random.gauss(0.25, sigma),
-                                 random.gauss(0, sigma))
-    # normal distribution
-    elif mode == "normal":
-        for i in range(len(agents)):
-            points[agents[i]] = (random.gauss(0., sigma),
-                                 random.gauss(0., sigma))
-    # normal distribution, each 1/4 of agents centered on (+-0.5,+-0.5)
-    elif mode == "eucl5":
-        for i in range(len(agents) / 4):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(len(agents) / 4, 2 * len(agents) / 4):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
-        for i in range(2 * len(agents) / 4, 3 * len(agents) / 4):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(0.5, sigma))
-        for i in range(3 * len(agents) / 4, len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-    # normal distribution, 1/5 of agents centered on (-0.5,-0.5),
-    #                      1/5 of agents centered on (-0.5,0.5),
-    #                      1/5 of agents centered on (0.5,-0.5),
-    #                      2/5 of agents on (0.5,0.5)
-    elif mode == "eucl3":
-        for i in range(len(agents) / 5):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(len(agents) / 5, 2 * len(agents) / 5):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(0.5, sigma))
-        for i in range(2 * len(agents) / 5, 3 * len(agents) / 5):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(3 * len(agents) / 5, len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
-    elif mode == "eucl2plus":
-        for i in range(len(agents) / 6):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(len(agents) / 6, len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
-    elif mode == "uniform_square":
-        for a in agents:
-            points[a] = (random.uniform(-1, 1),
-                         random.uniform(-1, 1))
-    else:
-        print("mode", mode, "not known")
-        quit()
-    return points
 
 
 def plot_data(exp_name, aver_quotacompl, max_quotadeviation,
@@ -242,60 +151,6 @@ def plot_data(exp_name, aver_quotacompl, max_quotadeviation,
     # Gini coefficient of influence
     generate_boxplot(aver_influencegini, 0.0, 0.3,
                      "average_Gini_influence_" + exp_name)
-
-
-# generate instances for experiments according to specifications
-def generate_instances(exp_specs):
-    instances = {}
-    for spec in exp_specs:
-        if spec == "full":
-            continue
-
-        # load instances from a pickle file if it exists
-        # or generate instances and save to pickle file
-        name = str(spec).replace("]", "").replace("[", "")
-        name = name.replace(" ", "").replace("'", "")
-        picklefile = "pickle/experiments-" + name + ".pickle"
-        if not exists(picklefile):
-            print("generating instances for spec", spec)
-            num_simulations, num_voters, num_cands, num_rounds,\
-                sigma, voterpointmode, candpointmode, \
-                approval_threshold = spec
-
-            instances[str(spec)] = []
-            for _ in range(num_simulations):
-
-                voters = list(range(num_voters))
-                cands = list(range(num_cands))
-                voter_points = generate_2d_points(voters, voterpointmode,
-                                                  sigma)
-
-                # plt.scatter([x for x,y in voter_points.values()],
-                #             [y for x,y in voter_points.values()])
-                # plt.show()
-
-                history = []
-                for _ in range(num_rounds):
-                    cand_points = generate_2d_points(cands, candpointmode,
-                                                     sigma)
-                    prof = profiles.approvalprofile_from_2d_euclidean(
-                        voters,
-                        cands,
-                        voter_points,
-                        cand_points,
-                        approval_threshold)
-                    history.append(prof)
-                instances[str(spec)].append(history)
-
-            print("writing instances to", picklefile)
-            with open(picklefile, 'wb') as f:
-                pickle.dump(instances[str(spec)], f, protocol=2)
-        else:
-            print("loading instances from", picklefile)
-            with open(picklefile, 'rb') as f:
-                instances[str(spec)] = pickle.load(f)
-
-    return instances
 
 
 def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
@@ -515,174 +370,9 @@ def basic_stats(instances):
 #     [1000, 50, 5, 20, None, "uniform_square", "uniform_square", 1.5],
 #     "full"]
 
-random.seed(31415)
 
 try:
     makedirs("pickle")
 except OSError:
     if not isdir("pickle"):
         raise
-
-exp_specs = [
-    [10000, 20, 5, 20, 0.2, "eucl2", "uniform_square", 1.5]]
-
-instances = generate_instances(exp_specs)
-
-rules = ["av",
-         "per_pav",
-         "per_equality",
-         "per_quota",
-         "per_nash",
-         "per_reset",
-         "per_unitcost",
-         "per_consensus",
-         "serial_dictatorship",
-         "per_quota_mod"
-         ]
-
-# run experiments, analyze and plot
-for spec in exp_specs:
-    if spec == "full":
-        curr_instances = [inst for coll in instances.values()
-                          for inst in coll]
-    else:
-        curr_instances = instances[str(spec)]
-
-    name = str(spec).replace("]", "").replace("[", "")
-    exp_name = str(name).replace(" ", "").replace("'", "")
-
-    aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
-    max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
-    aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
-    aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
-
-    print()
-    print(spec, "with", len(curr_instances), "instances")
-    basic_stats(curr_instances)
-
-    picklefile = "pickle/computation-" + name + ".pickle"
-    if not exists(picklefile):
-        print("computing perpetual voting rules")
-
-        for history in curr_instances:
-            run_exp_for_history(history,
-                                aver_quotacompl,
-                                max_quotadeviation,
-                                aver_satisfaction,
-                                aver_influencegini)
-
-        print("writing results to", picklefile)
-        with open(picklefile, 'wb') as f:
-            pickle.dump([aver_quotacompl, max_quotadeviation,
-                         aver_satisfaction, aver_influencegini], f,
-                        protocol=2)
-    else:
-        print("loading results from", picklefile)
-        with open(picklefile, 'rb') as f:
-            aver_quotacompl, max_quotadeviation, \
-                aver_satisfaction, aver_influencegini = pickle.load(f)
-
-    # analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation)
-
-    statistical_significance(aver_quotacompl, aver_influencegini)
-
-    # create plots
-    plot_data(exp_name,
-              aver_quotacompl,
-              max_quotadeviation,
-              aver_satisfaction,
-              aver_influencegini,
-              rules)
-
-print("Done")
-
-
-# experiments from files
-input_dirs = ["data/eurovision_song_contest_tsoi",
-              "data/free_games_tsoi",
-              "data/free_news_tsoi",
-              "data/gross_games_tsoi",
-              "data/gross_news_tsoi",
-              "data/paid_games_tsoi",
-              "data/paid_news_tsoi",
-              "data/weekly_tsoi",
-              "data/viral_weekly_tsoi"]
-# Rules for replacing missing voter data, None leads to exception
-missing_rules = [None, "all", "empty", "ignore"]
-
-for missing_rule in missing_rules[1:]:
-    print("Now start experiments with files from", input_dirs, end=' ')
-    print("With replacement rule ", missing_rule)
-
-    aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
-    max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
-    aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
-    aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
-
-    data_instances = []
-    instance_size = 20
-    multiplier = 1
-    percent = 0.9
-    for _ in range(0, 6):
-        for directory in input_dirs:
-            if directory.endswith("tsoi"):
-                if directory is "data/eurovision_song_contest_tsoi"\
-                        and multiplier > 3:
-                    continue
-                history, _ = \
-                    file_loader.start_tsoi_load(
-                        directory,
-                        max_approvals=2*multiplier)
-            elif directory.endswith("csv"):
-                history, _ = \
-                    file_loader.\
-                        start_spotify_csv_load(
-                            directory,
-                            approval_percent=percent)
-            else:
-                continue
-
-            splits = int(len(history) / instance_size)
-            for i in range(0, splits):
-                data_instances.append(
-                    history[i*instance_size:(i+1)*instance_size])
-        multiplier *= 2
-        percent -= 0.14
-
-    print("number of instances:", len(data_instances))
-    basic_stats(data_instances)
-
-    picklefile = "pickle/computation-" + "tsoi_data_" + missing_rule \
-                 + ".pickle"
-    if not exists(picklefile):
-        print("computing perpetual voting rules")
-        for history in data_instances:
-            run_exp_for_history(history,
-                                aver_quotacompl,
-                                max_quotadeviation,
-                                aver_satisfaction,
-                                aver_influencegini,
-                                missing_rule=missing_rule)
-
-        print("writing results to", picklefile)
-        with open(picklefile, 'wb') as f:
-            pickle.dump([aver_quotacompl, max_quotadeviation,
-                         aver_satisfaction, aver_influencegini], f,
-                        protocol=2)
-    else:
-        print("loading results from", picklefile)
-        with open(picklefile, 'rb') as f:
-            aver_quotacompl, max_quotadeviation, \
-            aver_satisfaction, aver_influencegini = pickle.load(f)
-
-    statistical_significance(aver_quotacompl, aver_influencegini)
-
-    # create plots
-    plot_data("tsoi_data_" + missing_rule,
-              aver_quotacompl,
-              max_quotadeviation,
-              aver_satisfaction,
-              aver_influencegini,
-              rules)
-
-    print("Done with files and missing rule")
