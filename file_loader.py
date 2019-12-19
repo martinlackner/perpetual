@@ -15,7 +15,7 @@ script_dir = os.path.dirname(__file__)
 # from_date and to_date are strings that state the first
 # file to consider and the last one.
 def start_tsoi_load(dir_name, max_approvals=None,
-                    from_date=None, to_date=None):
+                    from_date=None, to_date=None, only_complete=False):
     file_dir, files = get_file_names(dir_name)
 
     approval_profiles = []
@@ -37,7 +37,9 @@ def start_tsoi_load(dir_name, max_approvals=None,
                 approval_profiles.append(profiles.ApprovalProfile(
                     list(profile.keys()), candidates, profile))
                 all_voters = all_voters.union(list(profile.keys()))
-
+    if only_complete:
+        approval_profiles, all_voters = \
+            remove_additional_voters(approval_profiles, all_voters)
     return approval_profiles, all_voters
 
 
@@ -91,7 +93,8 @@ def load_tsoi_file(abs_path, max_approvals):
 # from_date and to_date are strings that state the first file to
 # consider and the last one.
 def start_spotify_csv_load(dir_name, approval_percent=0.8,
-                           from_date=None, to_date=None):
+                           from_date=None, to_date=None,
+                           only_complete=False):
     file_dir, files = get_file_names(dir_name)
 
     approval_profiles = []
@@ -134,6 +137,9 @@ def start_spotify_csv_load(dir_name, approval_percent=0.8,
         approval_profiles.append(profiles.ApprovalProfile(
             list(profile.keys()), candidates, profile))
         all_voters = all_voters.union(list(profile.keys()))
+    if only_complete:
+        approval_profiles, all_voters = \
+            remove_additional_voters(approval_profiles, all_voters)
     return approval_profiles, all_voters
 
 
@@ -174,3 +180,31 @@ def get_file_names(dir_name):
         files = filenames
         break
     return file_dir, files
+
+
+def remove_additional_voters(approval_profiles, all_voters):
+    voters = set(all_voters)
+    for profile in approval_profiles:
+        voters = voters.intersection(profile.voters)
+    if len(voters) == len(all_voters):
+        return approval_profiles, all_voters
+
+    voter_list = list(voters)
+    appr_profiles = []
+    for profile in approval_profiles:
+        if len(profile.voters) == len(voters):
+            appr_profiles.append(profile)
+        else:
+            appr_set = {}
+            cands = set()
+            for voter, appr in profile.approval_sets.items():
+                if voter in voters:
+                    appr_set[voter] = appr
+                    cands = cands.union(appr)
+            appr_profiles.append(profiles.ApprovalProfile(voter_list,
+                                                          list(cands),
+                                                          appr_set))
+    return appr_profiles, voters
+
+
+
