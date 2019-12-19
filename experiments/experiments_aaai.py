@@ -10,6 +10,18 @@ from experiments import basic_stats, run_exp_for_history, \
 from perpetual_rules import PERPETUAL_RULES
 
 
+rules = ["av",
+         "per_pav",
+         "per_equality",
+         "per_quota",
+         "per_nash",
+         "per_reset",
+         "per_unitcost",
+         "per_consensus",
+         "serial_dictatorship",
+         ]
+
+
 # generate a list of 2d coordinates subject to
 # various distributions
 def generate_2d_points(agents, mode, sigma):
@@ -125,7 +137,7 @@ def generate_instances(exp_specs):
         # or generate instances and save to pickle file
         name = str(spec).replace("]", "").replace("[", "")
         name = name.replace(" ", "").replace("'", "")
-        picklefile = "pickle/experiments-" + name + ".pickle"
+        picklefile = "../pickle/experiments-" + name + ".pickle"
         if not exists(picklefile):
             print("generating instances for spec", spec)
             num_simulations, num_voters, num_cands, num_rounds, \
@@ -175,7 +187,6 @@ exp_specs = [
 
 instances = generate_instances(exp_specs)
 
-rules = experiments.rules
 
 # run experiments, analyze and plot
 for spec in exp_specs:
@@ -197,7 +208,7 @@ for spec in exp_specs:
     print(spec, "with", len(curr_instances), "instances")
     basic_stats(curr_instances)
 
-    picklefile = "pickle/computation-" + name + ".pickle"
+    picklefile = "../pickle/computation-" + name + ".pickle"
     if not exists(picklefile):
         print("computing perpetual voting rules")
 

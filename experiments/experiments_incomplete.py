@@ -14,7 +14,17 @@ from perpetual_rules import PERPETUAL_RULES
 
 random.seed(31415)
 
-rules = experiments.rules
+rules = ["av",
+         "per_pav",
+         "per_equality",
+         "per_quota",
+         "per_nash",
+         "per_reset",
+         "per_unitcost",
+         "per_consensus",
+         "serial_dictatorship",
+         "per_quota_mod"
+         ]
 
 input_dirs = ["data/eurovision_song_contest_tsoi",
               "data/free_games_tsoi",
@@ -70,7 +80,7 @@ for missing_rule in missing_rules[1:]:
     print("number of instances:", len(data_instances))
     basic_stats(data_instances)
 
-    picklefile = "pickle/computation-" + "tsoi_data_" + missing_rule \
+    picklefile = "../pickle/computation-" + "tsoi_data_" + missing_rule \
                  + ".pickle"
     if not exists(picklefile):
         print("computing perpetual voting rules")

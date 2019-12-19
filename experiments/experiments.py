@@ -121,7 +121,7 @@ def plot_data(exp_name, aver_quotacompl, max_quotadeviation,
                          str("{0:.3f}".format(upper_labels[i])),
                          horizontalalignment='center',
                          fontsize=11)
-            plot_filename = str("fig/" + name + ".pdf")
+            plot_filename = str("../fig/" + name + ".pdf")
             plt.savefig(plot_filename, bbox_inches='tight')
             # plt.show()
             plt.close()
@@ -372,7 +372,7 @@ def basic_stats(instances):
 
 
 try:
-    makedirs("pickle")
+    makedirs("../pickle")
 except OSError:
-    if not isdir("pickle"):
+    if not isdir("../pickle"):
         raise
