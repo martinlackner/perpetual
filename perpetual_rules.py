@@ -1,6 +1,10 @@
 # Implementations of perpetual voting rules
 
 # Author: Martin Lackner
+"""Implementation of perpetual voting rules
+"""
+
+
 from future.utils import iteritems
 
 try:
@@ -96,6 +100,11 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
 
     missing_rule : str, optional
         The rule that is used if a voter is missing from the profile.
+
+    Returns
+    -------
+    winner
+        The winner according to the rule
     """
     if rule == "per_quota" or rule == "per_quota_min" \
             or rule == "per_quota_mod":
@@ -157,6 +166,22 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
 
 
 def init_weights(rule, voters):
+    """Generates a weight object for the given rule with and all
+    the voters
+
+    Parameters
+    ----------
+    rule : str
+        The name of the rule that is used.
+
+    voters : list
+        A list with all voters.
+
+    Returns
+    -------
+    weights
+        The initial weights for the rule.
+    """
     if (rule == "per_multiplication_offset" or
             rule == "per_nash" or
             rule == "per_equality" or
