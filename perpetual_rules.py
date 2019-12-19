@@ -28,6 +28,7 @@ PERPETUAL_RULES = ["per_pav",
                    "random_dictatorship",
                    "per_2nd_prize"
                    ]
+"""List of available voting rules."""
 
 SHORT_RULENAMES = {"per_pav": "Per. PAV",
                    "per_consensus": "Per. Cons.",
@@ -46,16 +47,56 @@ SHORT_RULENAMES = {"per_pav": "Per. PAV",
                    "random_dictatorship": "SD",
                    "per_2nd_prize": "p-2nd"
                    }
+"""Dictionary with shortcuts for the rule names."""
 
 
-def compute_rule_sequence(rule, profile_list, weights):
+def compute_rule_sequence(rule, profile_list, weights=None,
+                          missing_rule=None):
+    """Starting point for computing a perpetual voting rule multiple times.
+
+    Parameters
+    ----------
+    rule : str
+        The name of the rule that is used.
+
+    profile_list : ApprovalProfile list
+        The approval profile to use the rule on.
+
+    weights : tuple or dict, optional
+        The weights of each voter.
+
+    missing_rule : str, optional
+        The rule that is used if a voter is missing from the profile.
+
+    Returns
+    -------
+    list
+        A list of winners (each input profile one winner)
+    """
     winner_history = []
     for profile in profile_list:
-        winner_history.append(compute_rule(rule, profile, weights))
+        winner_history.append(compute_rule(rule, profile, weights,
+                                           missing_rule))
     return winner_history
 
 
 def compute_rule(rule, profile, weights=None, missing_rule=None):
+    """Starting point for computing a perpetual voting rule one time.
+
+    Parameters
+    ----------
+    rule : str
+        The name of the rule that is used.
+
+    profile : ApprovalProfile
+        The approval profile to use the rule on.
+
+    weights : tuple or dict, optional
+        The weights of each voter.
+
+    missing_rule : str, optional
+        The rule that is used if a voter is missing from the profile.
+    """
     if rule == "per_quota" or rule == "per_quota_min" \
             or rule == "per_quota_mod":
         voters = weights[0].keys()
@@ -189,7 +230,10 @@ def __per_subtraction(profile, weights, subtr_mode="numvoters"):
                 weights[v] -= Fraction(len(profile.voters),
                                   candidate_support[winner])
         elif subtr_mode == "per_2nd_prize":
-            second_prize = sorted(score.values())[-2]
+            if len(score) > 1:
+                second_prize = sorted(score.values())[-2]
+            else:
+                second_prize = score.values()[0]   # TODO what to do if all agree on one candidate and don't want any other
             factor = 1 - 1. * second_prize / score[winner]
             if winner in profile.approval_sets[v] and weights[v] > 0:
                 weights[v] *= factor

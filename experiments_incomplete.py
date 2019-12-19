@@ -1,6 +1,7 @@
 from __future__ import print_function
-from os.path import exists, isdir
-from os import makedirs
+
+import random
+from os.path import exists
 import pickle
 
 
@@ -10,6 +11,8 @@ import file_loader
 from experiments import run_exp_for_history, statistical_significance, \
     plot_data, basic_stats
 from perpetual_rules import PERPETUAL_RULES
+
+random.seed(31415)
 
 rules = experiments.rules
 

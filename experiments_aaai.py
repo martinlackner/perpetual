@@ -1,7 +1,6 @@
 from __future__ import print_function
 import pickle
-from os import makedirs
-from os.path import isdir, exists
+from os.path import exists
 import random
 
 import experiments
