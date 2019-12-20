@@ -3,3 +3,10 @@
 *.csv
 pickle/*
 *.pdf
+*.pyc
+*.log
+excluded
+.project
+.pydevproject
+.coverage
+htmlcov
