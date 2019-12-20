@@ -258,7 +258,7 @@ def __per_subtraction(profile, weights, subtr_mode="numvoters"):
             if len(score) > 1:
                 second_prize = sorted(score.values())[-2]
             else:
-                second_prize = score.values()[0]   # TODO what to do if all agree on one candidate and don't want any other
+                second_prize = score.values()[0]
             factor = 1 - 1. * second_prize / score[winner]
             if winner in profile.approval_sets[v] and weights[v] > 0:
                 weights[v] *= factor
@@ -350,8 +350,9 @@ def per_phragmen(profile, weights):
             averageload[c] = float('inf')
         else:
             while True:
-                averageload[c] = Fraction(1 + sum([weights[v] for v in supporters]),
-                                     len(supporters))
+                averageload[c] = Fraction(
+                    1 + sum([weights[v] for v in supporters]),
+                    len(supporters))
                 if averageload[c] >= max([weights[v] for v in supporters]):
                     break
                 else:

@@ -174,12 +174,12 @@ for missing_rule in missing_rules[1:]:
         print("loading results from", picklefile)
         with open(picklefile, 'rb') as f:
             aver_quotacompl, max_quotadeviation, \
-            aver_satisfaction, aver_influencegini = pickle.load(f)
+                aver_satisfaction, aver_influencegini = pickle.load(f)
 
     statistical_significance(aver_quotacompl, aver_influencegini)
 
     # create plots
-    plot_data("tsoi_data_" + missing_rule,
+    plot_data("only_complete_tsoi_data_" + missing_rule,
               aver_quotacompl,
               max_quotadeviation,
               aver_satisfaction,

@@ -84,7 +84,7 @@ for missing_rule in missing_rules[1:]:
     print("number of instances:", len(data_instances))
     basic_stats(data_instances)
 
-    picklefile = "../pickle/computation-" + "tsoi_data_" + missing_rule \
+    picklefile = "../pickle/computation-" + "tsoi_data_" + missing_rule\
                  + ".pickle"
     if not exists(picklefile):
         print("computing perpetual voting rules")
