@@ -2,9 +2,10 @@
 
 # Author: Martin Lackner
 
-
+from __future__ import print_function
 import profiles
 import perpetual_rules as perpetual
+
 
 
 apprsets1 = {1: [1], 2: [1], 3: [2], 4: [3]}
@@ -18,11 +19,11 @@ profile3 = profiles.ApprovalProfile(voters, cands, apprsets3)
 
 weights = perpetual.init_weights("per_quota", voters)
 
-print "First round:",
-print "Perpetual Quota selects", perpetual.per_quota(profile1, weights)
+print("First round:")
+print("Perpetual Quota selects", perpetual.per_quota(profile1, weights))
 
-print "Second round:",
-print "Perpetual Quota selects", perpetual.per_quota(profile2, weights)
+print("Second round:")
+print("Perpetual Quota selects", perpetual.per_quota(profile2, weights))
 
-print "Third round:",
-print "Perpetual Quota selects", perpetual.per_quota(profile3, weights)
+print("Third round:")
+print("Perpetual Quota selects", perpetual.per_quota(profile3, weights))
