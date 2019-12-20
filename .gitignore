@@ -1,0 +1,5 @@
+*.pickle
+*.tsoi
+*.csv
+pickle/*
+*.pdf

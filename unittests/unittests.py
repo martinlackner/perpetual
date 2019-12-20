@@ -4,6 +4,8 @@
 
 
 import unittest
+
+import file_loader
 import perpetual_rules as perpetual
 import profiles
 
@@ -229,6 +231,77 @@ class TestPerpetualRules(unittest.TestCase):
             for i in range(k):
                 self.assertEqual(perpetual.compute_rule(rule, profile,
                                                         weights),
+                                 decision[rule][i],
+                                 msg=rule + " failed in round " + str(i))
+                if rule == "subtraction_numvoters":
+                    self.assertEqual(sum(weights.values()), len(voters))
+
+    # test perpetual rules on data from files
+    def test_perpetualrules_simple_files(self):
+        k = 6
+        decision = {"av": [3]*6,
+                    "per_pav": [3, 2, 3, 3, 2, 3],
+                    "per_consensus": [3, 2, 3, 3, 2, 3],
+                    "per_majority": [3, 3, 2, 3, 3, 3],
+                    "per_unitcost": [3, 2, 3, 3, 2, 3],
+                    "per_reset": [3, 2, 3, 2, 3, 2],
+                    "per_nash": [3, 3, 2, 3, 2, 3],
+                    "per_equality": [3, 2, 3, 2, 3, 2],
+                    "per_phragmen": [3, 2, 3, 3, 2, 3],
+                    "per_quota": [3, 2, 3, 3, 2, 3],
+                    "per_quota_mod": [3, 2, 3, 3, 2, 3],
+                    "per_2nd_prize": [3, 3, 2, 3, 3, 3]}
+
+        self.longMessage = True
+
+        approval_profiles, _ = file_loader.start_tsoi_load("unittests/simple")
+        voters = approval_profiles[0].voters
+
+        for rule in perpetual.PERPETUAL_RULES:
+            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+                continue
+
+            weights = perpetual.init_weights(rule, voters)
+            i = 0
+            for profile in approval_profiles:
+                self.assertEqual(perpetual.compute_rule(rule, profile,
+                                                        weights),
+                                 decision[rule][i],
+                                 msg=rule + " failed in round " + str(i))
+                if rule == "subtraction_numvoters":
+                    self.assertEqual(sum(weights.values()), len(voters))
+                i += 1
+
+    # test perpetual rules on more diverse data from files
+    def test_perpetualrules_files(self):
+        decision = {"av": [3, 1, 2, 1, 3, 2],
+                    "per_pav": [3, 3, 2, 1, 3, 2],
+                    "per_consensus": [3, 3, 2, 1, 1, 1],
+                    "per_majority": [3, 3, 2, 1, 3, 2],
+                    "per_unitcost": [3, 3, 2, 1, 3, 2],
+                    "per_reset": [3, 3, 2, 1, 1, 2],
+                    "per_nash": [3, 3, 2, 1, 3, 2],
+                    "per_equality": [3, 3, 2, 1, 1, 2],
+                    "per_phragmen": [3, 3, 2, 1, 1, 2],
+                    "per_quota": [3, 3, 2, 1, 1, 2],
+                    "per_quota_mod": [3, 3, 2, 1, 1, 2],
+                    "per_2nd_prize": [3, 3, 2, 1, 3, 2]}
+
+        self.longMessage = True
+
+        approval_profiles, voters = file_loader.start_tsoi_load("unittests/diverse")
+        self.assertEqual(len(voters), len(approval_profiles[0].voters),
+                         msg="failed to read files, all profiles "
+                             "should have equally many voters.")
+
+        for rule in perpetual.PERPETUAL_RULES:
+            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+                continue
+
+            weights = perpetual.init_weights(rule, voters)
+            for i, profile in enumerate(approval_profiles):
+                self.assertEqual(perpetual.compute_rule(rule, profile,
+                                                    weights),
                                  decision[rule][i],
                                  msg=rule + " failed in round " + str(i))
                 if rule == "subtraction_numvoters":
