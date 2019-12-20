@@ -40,6 +40,8 @@ def start_tsoi_load(dir_name, max_approvals=None,
     if only_complete:
         approval_profiles, all_voters = \
             remove_additional_voters(approval_profiles, all_voters)
+    if len(approval_profiles) == 0 or len(all_voters) == 0:
+        raise Exception("No data found in", dir_name)
     return approval_profiles, all_voters
 
 
@@ -179,6 +181,8 @@ def get_file_names(dir_name):
         file_dir = dir_path
         files = filenames
         break
+    if file_dir is None or len(files) == 0:
+        raise Exception("No files found in ", dir_name)
     return file_dir, files
 
 

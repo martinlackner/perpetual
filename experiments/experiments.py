@@ -5,32 +5,30 @@
 
 
 from __future__ import print_function
-
+from future.utils import listvalues
 import pickle
 import random
 from os import makedirs
 from os.path import isdir, exists
-
-from future.utils import listvalues
-
-import profiles
 
 try:
     from gmpy2 import mpq as Fraction
 except ImportError:
     from fractions import Fraction
 
-import perpetual_rules as perpetual
-
 import numpy as np
-import perpetual_rules
-from perpetual_rules import PERPETUAL_RULES, SHORT_RULENAMES
 import matplotlib
 import matplotlib.pyplot as plt
 import csv
 
 from scipy import stats
 
+import sys
+sys.path.insert(0, '..')
+import profiles
+import perpetual_rules as perpetual
+import perpetual_rules
+from perpetual_rules import PERPETUAL_RULES, SHORT_RULENAMES
 
 ########################################################################
 

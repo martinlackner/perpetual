@@ -2,9 +2,10 @@
 
 # Author: Martin Lackner
 
+import sys
+sys.path.insert(0, '..')
 
 import unittest
-
 import file_loader
 import perpetual_rules as perpetual
 import profiles

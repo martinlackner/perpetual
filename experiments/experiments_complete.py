@@ -7,9 +7,11 @@ import pickle
 
 # experiments from files
 import experiments
-import file_loader
 from experiments import run_exp_for_history, statistical_significance, \
     plot_data, basic_stats
+import sys
+sys.path.insert(0, '..')
+import file_loader
 from perpetual_rules import PERPETUAL_RULES
 
 random.seed(31415)
@@ -107,84 +109,78 @@ input_dirs = ["data/eurovision_song_contest_tsoi",
               "data/weekly_tsoi",
               "data/viral_weekly_tsoi"]
 
-# Rules for replacing missing voter data, None leads to exception
-missing_rules = [None, "all", "empty", "ignore"]
 
-for missing_rule in missing_rules[1:]:
-    print("Now start experiments with files from", input_dirs, end=' ')
-    print("With replacement rule ", missing_rule)
+print("Now start experiments with files from", input_dirs)
 
-    aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
-    max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
-    aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
-    aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
+aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
+max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
+aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
+aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
 
-    data_instances = []
-    instance_size = 20
-    multiplier = 1
-    percent = 0.9
-    for _ in range(0, 6):
-        for directory in input_dirs:
-            if directory.endswith("tsoi"):
-                if directory is "data/eurovision_song_contest_tsoi" \
-                        and multiplier > 3:
-                    continue
-                history, _ = \
-                    file_loader.start_tsoi_load(
-                            directory,
-                            max_approvals=2*multiplier,
-                            only_complete=True)
-            elif directory.endswith("csv"):
-                history, _ = \
-                    file_loader.start_spotify_csv_load(
-                            directory,
-                            approval_percent=percent,
-                            only_complete=True)
-            else:
+data_instances = []
+instance_size = 20
+multiplier = 1
+percent = 0.9
+for _ in range(0, 6):
+    for directory in input_dirs:
+        if directory.endswith("tsoi"):
+            if directory is "data/eurovision_song_contest_tsoi" \
+                    and multiplier > 3:
                 continue
+            history, _ = \
+                file_loader.start_tsoi_load(
+                        directory,
+                        max_approvals=2*multiplier,
+                        only_complete=True)
+        elif directory.endswith("csv"):
+            history, _ = \
+                file_loader.start_spotify_csv_load(
+                        directory,
+                        approval_percent=percent,
+                        only_complete=True)
+        else:
+            continue
 
-            splits = int(len(history) / instance_size)
-            for i in range(0, splits):
-                data_instances.append(
-                    history[i*instance_size:(i+1)*instance_size])
-        multiplier *= 2
-        percent -= 0.14
+        splits = int(len(history) / instance_size)
+        for i in range(0, splits):
+            data_instances.append(
+                history[i*instance_size:(i+1)*instance_size])
+    multiplier *= 2
+    percent -= 0.14
 
-    print("number of instances:", len(data_instances))
-    basic_stats(data_instances)
+print("number of instances:", len(data_instances))
+basic_stats(data_instances)
 
-    picklefile = "../pickle/computation-" + "only_complete_tsoi_data_" + missing_rule \
-                 + ".pickle"
-    if not exists(picklefile):
-        print("computing perpetual voting rules")
-        for history in data_instances:
-            run_exp_for_history(history,
-                                aver_quotacompl,
-                                max_quotadeviation,
-                                aver_satisfaction,
-                                aver_influencegini,
-                                missing_rule=missing_rule)
+picklefile = "../pickle/computation-" + "only_complete_tsoi_data.pickle"
+if not exists(picklefile):
+    print("computing perpetual voting rules")
+    for history in data_instances:
+        run_exp_for_history(history,
+                            aver_quotacompl,
+                            max_quotadeviation,
+                            aver_satisfaction,
+                            aver_influencegini)
 
-        print("writing results to", picklefile)
-        with open(picklefile, 'wb') as f:
-            pickle.dump([aver_quotacompl, max_quotadeviation,
-                         aver_satisfaction, aver_influencegini], f,
-                        protocol=2)
-    else:
-        print("loading results from", picklefile)
-        with open(picklefile, 'rb') as f:
-            aver_quotacompl, max_quotadeviation, \
-                aver_satisfaction, aver_influencegini = pickle.load(f)
+    print("writing results to", picklefile)
+    with open(picklefile, 'wb') as f:
+        pickle.dump([aver_quotacompl, max_quotadeviation,
+                     aver_satisfaction, aver_influencegini], f,
+                    protocol=2)
+else:
+    print("loading results from", picklefile)
+    with open(picklefile, 'rb') as f:
+        aver_quotacompl, max_quotadeviation, \
+            aver_satisfaction, aver_influencegini = pickle.load(f)
 
-    statistical_significance(aver_quotacompl, aver_influencegini)
+statistical_significance(aver_quotacompl, aver_influencegini)
 
-    # create plots
-    plot_data("only_complete_tsoi_data_" + missing_rule,
-              aver_quotacompl,
-              max_quotadeviation,
-              aver_satisfaction,
-              aver_influencegini,
-              rules)
+# create plots
+plot_data("only_complete_tsoi_data",
+          aver_quotacompl,
+          max_quotadeviation,
+          aver_satisfaction,
+          aver_influencegini,
+          rules)
 
-    print("Done with files and missing rule")
+print("Done with files (only complete voters allowed)")
 

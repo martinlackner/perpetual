@@ -4,13 +4,14 @@ import random
 from os.path import exists
 import pickle
 
-
-# experiments from files
+import sys
+sys.path.insert(0, '..')
 import file_loader
 from experiments import run_exp_for_history, statistical_significance, \
     plot_data, basic_stats
 from perpetual_rules import PERPETUAL_RULES
 
+# experiments from files
 random.seed(31415)
 
 rules = ["av",

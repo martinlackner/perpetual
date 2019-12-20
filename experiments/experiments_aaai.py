@@ -6,6 +6,8 @@ import random
 import experiments
 from experiments import basic_stats, run_exp_for_history, \
     statistical_significance, plot_data
+import sys
+sys.path.insert(0, '..')
 from perpetual_rules import PERPETUAL_RULES
 
 
