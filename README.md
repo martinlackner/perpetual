@@ -16,7 +16,7 @@ implemented rules.
 * This module requires Python 2.7 or 3.6+.
 * It also requires the packages [gmpy2](https://gmpy2.readthedocs.io/), future, numpy, scipy and matplotlib 
 * A simple example can be found in [examples.py](examples.py).
-* The code for running the numerical simulations in [1] are contained in [experiments_aaai.py](experiments/experiments_aaai.py).
+* The code for running the numerical simulations in [1] are contained in [experiments/experiments_aaai.py](experiments/experiments_aaai.py).
 
 ## Contributors
 
