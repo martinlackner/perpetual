@@ -28,7 +28,8 @@ def file_example(dir_name, from_date=None, to_date=None):
                                               approval_profiles,
                                               weights,
                                               missing_rule="all")
-    print("The winners are", winners)
+    print("The list of winners is (first one first vote up to", end=' ')
+    print("the last one for the last voting):\n", winners)
 
 
 file_example("examples/example_files/", from_date="20170309",

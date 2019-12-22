@@ -93,13 +93,40 @@ def get_ranking_with_weights(line, appr_set, threshold):
     ranking = line.split(',')[1:]
     if len(ranking) == 0:
         return
-    max_weight = get_weigth(ranking[0])
-    for vote in ranking:
-        if get_weigth(vote) >= max_weight * threshold:
-            add_candidate(vote, appr_set)
+
+    max_weight = None
+    tied = False
+    curr_voters = ""
+    for i in range(len(ranking)):
+        voter = ranking[i].strip()
+        if not tied:
+            if voter.startswith("{"):
+                tied = True
+                curr_voters = voter
+                if "}" in voter:
+                    raise Exception("Single voter in {} is invalid")
+            else:
+                if max_weight is None:
+                    max_weight = get_weight(voter)
+                if get_weight(voter) >= max_weight * threshold:
+                    add_candidate(voter, appr_set)
+                else:
+                    break
+        else:
+            curr_voters += "," + voter
+            if "}" in voter:
+                if max_weight is None:
+                    max_weight = get_weight(curr_voters)
+                if get_weight(curr_voters) >= max_weight * threshold:
+                    add_candidate(curr_voters, appr_set)
+                    curr_voters = ""
+                else:
+                    break
+            else:
+                continue
 
 
-def get_weigth(rank):
+def get_weight(rank):
     parts = rank.split("[")
     if len(parts) != 2:
         raise Exception("Invalid format for with weights")
@@ -132,10 +159,32 @@ def get_ranking_without_weights(line, appr_set, threshold):
 
     if len(ranking) == 0:
         return
-    for vote in ranking:
+
+    tied = False
+    curr_voters = ""
+    for i in range(len(ranking)):
         if threshold > 0:
-            add_candidate(vote, appr_set)
-            threshold -= 1
+            voter = ranking[i].strip()
+            if not tied:
+                if voter.startswith("{"):
+                    tied = True
+                    # count = 1
+                    curr_voters = voter
+                    if "}" in voter:
+                        raise Exception("Single voter in {} is invalid")
+                else:
+                    add_candidate(voter, appr_set)
+                    threshold -= 1
+            else:
+                curr_voters += "," + voter
+                # count += 1
+                if "}" in voter:
+                    add_candidate(curr_voters, appr_set)
+                    curr_voters = ""
+                    threshold -= 1  # or -= count
+                    # count = 0
+                else:
+                    continue
         else:
             break
 
@@ -149,7 +198,7 @@ def get_file_names(dir_name):
         files = filenames
         break
     if file_dir is None or len(files) == 0:
-        raise Exception("No files found in ", dir_name)
+        raise Exception("No files found in ", input_path)
     return file_dir, files
 
 
