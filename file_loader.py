@@ -108,6 +108,7 @@ def load_file(abs_path, threshold, with_weights):
                 print("ranking Data seems to have wrong format in "
                       "file",
                       abs_path)
+                raise Exception("Unknown format", line)
             local_ranking = []
             profile[parts[0]] = local_ranking  # name of the voter
             if with_weights:
@@ -149,7 +150,8 @@ def get_ranking_with_weights(line, appr_set, threshold):
                     break
         else:
             curr_voters += "," + voter
-            if "}" in voter:
+            if "}" in curr_voters:
+                tied = False
                 if max_weight is None:
                     max_weight = get_weight(curr_voters)
                 if get_weight(curr_voters) >= max_weight * threshold:
