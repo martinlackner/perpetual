@@ -180,9 +180,9 @@ def add_candidate(rank, appr_set):
                                 rank)
             candidates = candidate[1:-1].split(",")
             for c in candidates:
-                appr_set.append(c.strip())
+                appr_set.append(int(c.strip()))
         else:
-            appr_set.append(candidate)
+            appr_set.append(int(candidate))
     else:
         raise Exception("Invalid format.", rank)
 

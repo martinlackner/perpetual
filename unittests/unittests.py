@@ -274,6 +274,7 @@ class TestPerpetualRules(unittest.TestCase):
                 i += 1
 
     # test perpetual rules on more diverse data from files
+    # uses threshold of 1 and no weights
     def test_perpetualrules_files(self):
         decision = {"av": [3, 1, 2, 1, 3, 2],
                     "per_pav": [3, 3, 2, 1, 3, 2],
@@ -290,7 +291,7 @@ class TestPerpetualRules(unittest.TestCase):
 
         self.longMessage = True
 
-        approval_profiles, voters = file_loader.start_tsoi_load("unittests/diverse")
+        approval_profiles, voters = file_loader.start_tsoi_load("unittests/diverse", threshold=1)
         self.assertEqual(len(voters), len(approval_profiles[0].voters),
                          msg="failed to read files, all profiles "
                              "should have equally many voters.")
@@ -303,6 +304,43 @@ class TestPerpetualRules(unittest.TestCase):
             for i, profile in enumerate(approval_profiles):
                 self.assertEqual(perpetual.compute_rule(rule, profile,
                                                     weights),
+                                 decision[rule][i],
+                                 msg=rule + " failed in round " + str(i))
+                if rule == "subtraction_numvoters":
+                    self.assertEqual(sum(weights.values()), len(voters))
+
+    # test perpetual rules on more diverse data from files
+    # uses threshold of 0.9 and weights
+    def test_perpetualrules_files_weighted(self):
+        decision = {"av": [1, 1, 2, 1, 3, 2],
+                    "per_pav": [1, 1, 2, 1, 3, 2],
+                    "per_consensus": [1, 1, 2, 1, 3, 2],
+                    "per_majority": [1, 1, 2, 1, 3, 2],
+                    "per_unitcost": [1, 1, 2, 1, 3, 2],
+                    "per_reset": [1, 1, 2, 1, 1, 3],
+                    "per_nash": [1, 1, 2, 1, 3, 2],
+                    "per_equality": [1, 1, 2, 1, 3, 2],
+                    "per_phragmen": [1, 1, 2, 1, 3, 2],
+                    "per_quota": [1, 1, 2, 1, 3, 2],
+                    "per_quota_mod": [1, 1, 2, 1, 3, 2],
+                    "per_2nd_prize": [1, 1, 2, 1, 1, 3]}
+
+        self.longMessage = True
+
+        approval_profiles, voters = file_loader.start_tsoi_load(
+            "unittests/diverse", threshold=0.9, with_weights=True)
+        self.assertEqual(len(voters), len(approval_profiles[0].voters),
+                         msg="failed to read files, all profiles "
+                             "should have equally many voters.")
+
+        for rule in perpetual.PERPETUAL_RULES:
+            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+                continue
+
+            weights = perpetual.init_weights(rule, voters)
+            for i, profile in enumerate(approval_profiles):
+                self.assertEqual(perpetual.compute_rule(rule, profile,
+                                                        weights),
                                  decision[rule][i],
                                  msg=rule + " failed in round " + str(i))
                 if rule == "subtraction_numvoters":
