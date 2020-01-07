@@ -9,14 +9,53 @@ import os
 script_dir = os.path.dirname(__file__)
 
 
-# Loads all tsoi files directly within the given directory.
-# All tsoi files should conform to the naming convention
-# of *_date.tsoi where the date format should be sortable
-# from_date and to_date are strings that state the first
-# file to consider and the last one.
 def start_tsoi_load(dir_name, threshold=None,
                     from_date=None, to_date=None, only_complete=False,
                     with_weights=False):
+    """
+    Loads all tsoi and ttoi files directly within the given directory.
+    All tsoi and ttoi files should conform to the naming convention
+    of *_date.tsoi or *_date.ttoi where the date format should
+    be sortable.
+
+
+    Parameters
+    ----------
+    dir_name : str
+        Relative path to the directory with the files. (root of module).
+
+    threshold : int or float
+        An int for with_weights=False means up to the rank threshold.
+
+        A float for with_weights=True means at least a weight of
+            max_weight * threshold needs to be reached within a ranking.
+
+        Or None for default cases: with weights 0.9 without 50%
+
+    from_date: str
+        Date in the same format as in the filenames. Files before this
+            date are ignored.
+
+    to_date: str
+        Date in the same format as in the filenames. Files after this
+            date are ignored.
+
+    only_complete: Boolean
+        if True all voters that are not within all profiles are removed.
+
+    with_weights: Boolean
+        States if weights are used to decide on the approval set.
+    Returns
+    -------
+    list, list
+        A list of ApprovalProfiles.
+        A list of all voters.
+
+
+    from_date and to_date are strings that state the first
+    file to consider and the last one.
+
+    """
     file_dir, files = get_file_names(dir_name)
 
     approval_profiles = []
@@ -26,9 +65,9 @@ def start_tsoi_load(dir_name, threshold=None,
         # (YYYYMMDD)
         files = sorted(files)
         for f in files:
-            if f.endswith('.tsoi'):
+            if f.endswith(".tsoi") or f.endswith(".ttoi"):
                 if from_date is not None or to_date is not None:
-                    date = f.split("_")[-1].split(".tsoi")[0]
+                    date = f.split("_")[-1].split(".t")[0]
                     if from_date is not None and date < from_date:
                         continue
                     if to_date is not None and date > to_date:
@@ -46,10 +85,6 @@ def start_tsoi_load(dir_name, threshold=None,
     return approval_profiles, all_voters
 
 
-# Loads the given file.
-# Only considers up to max_approvals alternatives per voter.
-# If no max_approvals is given it takes 50% of the alternatives
-# (at least one).
 def load_file(abs_path, threshold, with_weights):
     with open(abs_path, "r") as f:
         lines = f.readlines()
@@ -228,90 +263,6 @@ def remove_additional_voters(approval_profiles, all_voters):
                                                           appr_set))
     return appr_profiles, voters
 
-
-
-# This loads csv files with spotify charts and returns a list of
-# approval profiles
-# and a list of all voters from  these profiles
-# from_date and to_date are strings that state the first file to
-# consider and the last one.
-def start_spotify_csv_load(dir_name, approval_percent=0.8,
-                           from_date=None, to_date=None,
-                           only_complete=False):
-    file_dir, files = get_file_names(dir_name)
-
-    approval_profiles = []
-    all_voters = set()
-    candidates = set()
-    profile = {}
-    if file_dir is not None:
-        files = sorted(
-            files)  # sorts from oldest to newest if name is sortable
-        # by date (YYYYMMDD)
-        date = None
-        for f in files:
-            file_date = f.split("_")[
-                1]  # date should be between first and second "_"
-            if f.endswith('.csv'):
-                if from_date is not None or to_date is not None:
-                    if from_date is not None and file_date < from_date:
-                        continue
-                    if to_date is not None and file_date > to_date:
-                        break
-                if date is None or file_date != date:
-                    if len(profile) > 0:
-                        profiles.ApprovalProfile(list(profile.keys()),
-                                                 candidates, profile)
-                        approval_profiles.append(
-                            profiles.ApprovalProfile(
-                                list(profile.keys()), candidates,
-                                profile))
-                        all_voters = all_voters.union(
-                            list(profile.keys()))
-                    profile = {}
-                    date = file_date
-                    candidates = set()
-                load_spotify_csv_file(os.path.join(file_dir, f),
-                                      candidates, profile,
-                                      approval_percent)
-    if len(profile) > 0:
-        profiles.ApprovalProfile(list(profile.keys()), candidates,
-                                 profile)
-        approval_profiles.append(profiles.ApprovalProfile(
-            list(profile.keys()), candidates, profile))
-        all_voters = all_voters.union(list(profile.keys()))
-    if only_complete:
-        approval_profiles, all_voters = \
-            remove_additional_voters(approval_profiles, all_voters)
-    return approval_profiles, all_voters
-
-
-# Opens a given spotify csv file.
-# All the used candidates are added to the set used_candidates.
-# All alternatives that reached at least highest_streaming_number *
-# max_approval_percent streams
-# are added to the profile for the given voter
-def load_spotify_csv_file(abs_path, used_candidates, profile,
-                          approval_percent):
-    with open(abs_path, "r") as f:
-        lines = f.readlines()
-        if len(lines) > 1:
-            if not lines[1].startswith('NA,NA,'):
-                minimum_streams = None
-                voter = None
-                for line in lines[1:]:
-                    x = line.split(",")
-                    if voter is None:
-                        voter = x[-2]
-                        minimum_streams = float(
-                            x[-4]) * approval_percent
-                        profile[voter] = []
-                    alternative_id = x[-1].strip()
-                    streams = float(x[-4])
-                    if streams < minimum_streams:
-                        break
-                    profile[voter].append(alternative_id)
-                    used_candidates.add(alternative_id)
 
 
 
