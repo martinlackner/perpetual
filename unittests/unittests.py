@@ -4,7 +4,6 @@
 
 import sys
 sys.path.insert(0, '..')
-
 import unittest
 import file_loader
 import perpetual_rules as perpetual
@@ -290,7 +289,8 @@ class TestPerpetualRules(unittest.TestCase):
 
         self.longMessage = True
 
-        approval_profiles, voters = file_loader.start_file_load("unittests/diverse", threshold=1)
+        approval_profiles, voters = file_loader.start_file_load(
+            "unittests/diverse", threshold=1)
         self.assertEqual(len(voters), len(approval_profiles[0].voters),
                          msg="failed to read files, all profiles "
                              "should have equally many voters.")
@@ -302,7 +302,7 @@ class TestPerpetualRules(unittest.TestCase):
             weights = perpetual.init_weights(rule, voters)
             for i, profile in enumerate(approval_profiles):
                 self.assertEqual(perpetual.compute_rule(rule, profile,
-                                                    weights),
+                                                        weights),
                                  decision[rule][i],
                                  msg=rule + " failed in round " + str(i))
                 if rule == "subtraction_numvoters":
@@ -347,7 +347,6 @@ class TestPerpetualRules(unittest.TestCase):
 
     # test perpetual rules on data from files
     def test_perpetualrules_simple_files_ttoi(self):
-        k = 6
         decision = {"av": [1]*6,
                     "per_pav": [1, 1, 2, 1, 1, 2],
                     "per_consensus": [1, 2, 1, 1, 2, 1],
@@ -384,7 +383,6 @@ class TestPerpetualRules(unittest.TestCase):
 
     # test perpetual rules on data from files
     def test_perpetualrules_simple_files_ttoi_weighted(self):
-        k = 6
         decision = {"av": [3]*6,
                     "per_pav":  [3]*6,
                     "per_consensus":  [3]*6,

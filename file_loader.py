@@ -264,7 +264,3 @@ def remove_additional_voters(approval_profiles, all_voters):
                                                           list(cands),
                                                           appr_set))
     return appr_profiles, voters
-
-
-
-

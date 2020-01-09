@@ -213,7 +213,8 @@ def per_pav(profile, weights):
     winner = [c for c in profile.cands if score[c] == maxsc][0]
     for v in profile.voters:
         if winner in profile.approval_sets[v]:
-            weights[v] = Fraction(1, (Fraction(1) / weights[v] + 1))  # 1/x --> 1/(x+1)
+            # 1/x --> 1/(x+1)
+            weights[v] = Fraction(1, (Fraction(1) / weights[v] + 1))
     # tied_winners = [c for c in profiles.cands if score[c] == maxsc]
     return winner
 
@@ -253,7 +254,7 @@ def __per_subtraction(profile, weights, subtr_mode="numvoters"):
         if subtr_mode == "per_consensus":
             if winner in profile.approval_sets[v] and weights[v] > 0:
                 weights[v] -= Fraction(len(profile.voters),
-                                  candidate_support[winner])
+                                       candidate_support[winner])
         elif subtr_mode == "per_2nd_prize":
             if len(score) > 1:
                 second_prize = sorted(score.values())[-2]
@@ -265,7 +266,7 @@ def __per_subtraction(profile, weights, subtr_mode="numvoters"):
         elif subtr_mode == "numvoters_half":
             if winner in profile.approval_sets[v] and weights[v] > 0:
                 weights[v] -= Fraction(len(profile.voters),
-                                  2 * candidate_support[winner])
+                                       2 * candidate_support[winner])
         elif subtr_mode == "per_unitcost":
             if winner in profile.approval_sets[v]:
                 weights[v] -= 1
@@ -293,7 +294,7 @@ def per_nash(profile, weights):
                 if weights[v] == 0:
                     # multiply by a small epsilon
                     score[c] *= Fraction(1, max(sum(weights.values()),
-                                           len(profile.voters)))
+                                         len(profile.voters)))
                 else:
                     score[c] *= weights[v]
     maxsc = max(score.values())
