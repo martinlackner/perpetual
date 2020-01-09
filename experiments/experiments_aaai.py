@@ -28,7 +28,7 @@ rules = ["av",
 random.seed(31415)
 
 exp_specs = [
-    [100, 20, 5, 20, 0.2, "eucl2", "uniform_square", 1.5]]
+    [10000, 20, 5, 20, 0.2, "eucl2", "uniform_square", 1.5]]
 
 instances = experiments.generate_instances(exp_specs)
 
