@@ -255,7 +255,7 @@ class TestPerpetualRules(unittest.TestCase):
 
         self.longMessage = True
 
-        approval_profiles, _ = file_loader.start_tsoi_load("unittests/simple")
+        approval_profiles, _ = file_loader.start_file_load("unittests/simple")
         voters = approval_profiles[0].voters
 
         for rule in perpetual.PERPETUAL_RULES:
@@ -291,7 +291,7 @@ class TestPerpetualRules(unittest.TestCase):
 
         self.longMessage = True
 
-        approval_profiles, voters = file_loader.start_tsoi_load("unittests/diverse", threshold=1)
+        approval_profiles, voters = file_loader.start_file_load("unittests/diverse", threshold=1)
         self.assertEqual(len(voters), len(approval_profiles[0].voters),
                          msg="failed to read files, all profiles "
                              "should have equally many voters.")
@@ -327,7 +327,7 @@ class TestPerpetualRules(unittest.TestCase):
 
         self.longMessage = True
 
-        approval_profiles, voters = file_loader.start_tsoi_load(
+        approval_profiles, voters = file_loader.start_file_load(
             "unittests/diverse", threshold=0.9, with_weights=True)
         self.assertEqual(len(voters), len(approval_profiles[0].voters),
                          msg="failed to read files, all profiles "
@@ -364,7 +364,7 @@ class TestPerpetualRules(unittest.TestCase):
 
         self.longMessage = True
 
-        approval_profiles, _ = file_loader.start_tsoi_load(
+        approval_profiles, _ = file_loader.start_file_load(
             "unittests/simple_ttoi", threshold=1)
         voters = approval_profiles[0].voters
 
@@ -401,7 +401,7 @@ class TestPerpetualRules(unittest.TestCase):
 
         self.longMessage = True
 
-        approval_profiles, _ = file_loader.start_tsoi_load(
+        approval_profiles, _ = file_loader.start_file_load(
             "unittests/simple_ttoi", threshold=0.5, with_weights=True)
         voters = approval_profiles[0].voters
 

@@ -9,10 +9,11 @@ import file_loader
 import perpetual_rules as perpetual
 
 
+# tsoi and ttoi are opened the same way
 def file_example(dir_name, from_date=None, to_date=None):
     print("tsoi data from folder", dir_name)
     approval_profiles, voters = \
-        file_loader.start_tsoi_load(dir_name, 2, from_date=from_date,
+        file_loader.start_file_load(dir_name, 2, from_date=from_date,
                                     to_date=to_date, with_weights=False)
     weights = perpetual.init_weights("per_quota", voters)
     for approval_profile in approval_profiles:
@@ -21,7 +22,7 @@ def file_example(dir_name, from_date=None, to_date=None):
 
     print("Now with using the weights from the tsoi")
     approval_profiles, voters = \
-        file_loader.start_tsoi_load(dir_name, 0.9, from_date=from_date,
+        file_loader.start_file_load(dir_name, 0.9, from_date=from_date,
                                     to_date=to_date, with_weights=True)
     weights = perpetual.init_weights("per_quota", voters)
     winners = perpetual.compute_rule_sequence("per_quota",

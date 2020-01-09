@@ -134,7 +134,7 @@ for _ in range(0, 6):
                 and multiplier > 3:
             continue
         history, _ = \
-            file_loader.start_tsoi_load(
+            file_loader.start_file_load(
                 directory,
                 threshold=2*multiplier,
                 only_complete=True)
@@ -146,7 +146,7 @@ for _ in range(0, 6):
 
     for directory in weighted_input_dirs:
         history, _ = \
-            file_loader.start_tsoi_load(
+            file_loader.start_file_load(
                 directory,
                 threshold=percent,
                 with_weights=True,

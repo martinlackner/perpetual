@@ -4,11 +4,11 @@ import random
 from os.path import exists
 import pickle
 
+from experiments import run_exp_for_history, statistical_significance, \
+    plot_data, basic_stats
 import sys
 sys.path.insert(0, '..')
 import file_loader
-from experiments import run_exp_for_history, statistical_significance, \
-    plot_data, basic_stats
 from perpetual_rules import PERPETUAL_RULES
 
 # experiments from files
@@ -71,7 +71,7 @@ for missing_rule in missing_rules[1:]:
                     and multiplier > 3:
                 continue
             history, _ = \
-                file_loader.start_tsoi_load(
+                file_loader.start_file_load(
                         directory,
                         threshold=2*multiplier)
 
@@ -82,7 +82,7 @@ for missing_rule in missing_rules[1:]:
 
         for directory in weighted_input_dirs:
             history, _ = \
-                file_loader.start_tsoi_load(
+                file_loader.start_file_load(
                     directory,
                     threshold=percent,
                     with_weights=True)

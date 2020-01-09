@@ -32,6 +32,7 @@ from perpetual_rules import PERPETUAL_RULES, SHORT_RULENAMES
 
 ########################################################################
 
+
 def save_twodim_dict_as_csv(name, indexrow, indexcol, dictionary):
     with open('csv/' + name + '.csv', 'w') as csvfile:
         csvwriter = csv.writer(csvfile, lineterminator='\n')

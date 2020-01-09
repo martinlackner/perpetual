@@ -9,7 +9,7 @@ import os
 script_dir = os.path.dirname(__file__)
 
 
-def start_tsoi_load(dir_name, threshold=None,
+def start_file_load(dir_name, threshold=None,
                     from_date=None, to_date=None, only_complete=False,
                     with_weights=False):
     """

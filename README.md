@@ -17,6 +17,7 @@ implemented rules.
 * It also requires the packages [gmpy2](https://gmpy2.readthedocs.io/), future, numpy, scipy and matplotlib 
 * A simple example can be found in [examples/examples.py](examples/examples.py).
 * The code for running the numerical simulations in [1] are contained in [experiments/experiments_aaai.py](experiments/experiments_aaai.py).
+* For the code in [experiments/experiments_incomplete.py](experiments/experiments_incomplete.py) and [experiments/experiments_complete.py](experiments/experiments_complete.py) data from [https://www.dbai.tuwien.ac.at/proj/sudema/data/data.zip](https://www.dbai.tuwien.ac.at/proj/sudema/data/data.zip) is required. Simply download the tsoi collection and extract it into this directory. 
 
 ## Contributors
 
