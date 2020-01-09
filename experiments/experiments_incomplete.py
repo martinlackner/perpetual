@@ -4,13 +4,14 @@ import random
 from os.path import exists
 import pickle
 
-
-# experiments from files
-import file_loader
 from experiments import run_exp_for_history, statistical_significance, \
     plot_data, basic_stats
+import sys
+sys.path.insert(0, '..')
+import file_loader
 from perpetual_rules import PERPETUAL_RULES
 
+# experiments from files
 random.seed(31415)
 
 rules = ["av",
@@ -28,17 +29,25 @@ rules = ["av",
 # This example uses data from
 # https://www.dbai.tuwien.ac.at/proj/sudema/temporaldata.html
 # to test this it needs to be downloaded.
+# The section "All the above tsoi as one download"
+# can be downloaded and extracted in the root of this project
 # input_dirs holds the directory paths to the data
 # they are relative to the root of this project
 input_dirs = ["data/eurovision_song_contest_tsoi",
-              "data/free_games_tsoi",
-              "data/free_news_tsoi",
-              "data/gross_games_tsoi",
-              "data/gross_news_tsoi",
-              "data/paid_games_tsoi",
-              "data/paid_news_tsoi",
-              "data/weekly_tsoi",
-              "data/viral_weekly_tsoi"]
+              "data/i_phone/games/free_games_tsoi",
+              "data/i_phone/news/free_news_tsoi",
+              "data/i_phone/games/gross_games_tsoi",
+              "data/i_phone/news/gross_news_tsoi",
+              "data/i_phone/games/paid_games_tsoi",
+              "data/i_phone/news/paid_news_tsoi",
+              "data/spotify/weekly_tsoi",
+              "data/spotify/viral_weekly_tsoi",
+              "data/spotify/daily_tsoi",
+              "data/spotify/viral_daily_tsoi",
+              ]
+
+weighted_input_dirs = ["data/spotify/daily_tsoi",
+                       "data/spotify/weekly_tsoi"]
 
 # Rules for replacing missing voter data, None leads to exception
 missing_rules = [None, "all", "empty", "ignore"]
@@ -58,26 +67,30 @@ for missing_rule in missing_rules[1:]:
     percent = 0.9
     for _ in range(0, 6):
         for directory in input_dirs:
-            if directory.endswith("tsoi"):
-                if directory is "data/eurovision_song_contest_tsoi" \
-                        and multiplier > 3:
-                    continue
-                history, _ = \
-                    file_loader.start_tsoi_load(
-                            directory,
-                            max_approvals=2*multiplier)
-            elif directory.endswith("csv"):
-                history, _ = \
-                    file_loader.start_spotify_csv_load(
-                            directory,
-                            approval_percent=percent)
-            else:
+            if directory is "data/eurovision_song_contest_tsoi" \
+                    and multiplier > 3:
                 continue
+            history, _ = \
+                file_loader.start_file_load(
+                        directory,
+                        threshold=2*multiplier)
 
             splits = int(len(history) / instance_size)
             for i in range(0, splits):
                 data_instances.append(
                     history[i*instance_size:(i+1)*instance_size])
+
+        for directory in weighted_input_dirs:
+            history, _ = \
+                file_loader.start_file_load(
+                    directory,
+                    threshold=percent,
+                    with_weights=True)
+            splits = int(len(history) / instance_size)
+            for i in range(0, splits):
+                data_instances.append(
+                    history[i*instance_size:(i+1)*instance_size])
+
         multiplier *= 2
         percent -= 0.14
 

@@ -3,6 +3,8 @@
 # Author: Martin Lackner
 
 from __future__ import print_function
+import sys
+sys.path.insert(0, '..')
 import profiles
 import perpetual_rules as perpetual
 

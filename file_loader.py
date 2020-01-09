@@ -9,13 +9,53 @@ import os
 script_dir = os.path.dirname(__file__)
 
 
-# Loads all tsoi files directly within the given directory.
-# All tsoi files should conform to the naming convention
-# of *_date.tsoi where the date format should be sortable
-# from_date and to_date are strings that state the first
-# file to consider and the last one.
-def start_tsoi_load(dir_name, max_approvals=None,
-                    from_date=None, to_date=None, only_complete=False):
+def start_file_load(dir_name, threshold=None,
+                    from_date=None, to_date=None, only_complete=False,
+                    with_weights=False):
+    """
+    Loads all tsoi and ttoi files directly within the given directory.
+    All tsoi and ttoi files should conform to the naming convention
+    of *_date.tsoi or *_date.ttoi where the date format should
+    be sortable.
+
+
+    Parameters
+    ----------
+    dir_name : str
+        Relative path to the directory with the files. (root of module).
+
+    threshold : int or float
+        An int for with_weights=False means up to the rank threshold.
+
+        A float for with_weights=True means at least a weight of
+            max_weight * threshold needs to be reached within a ranking.
+
+        Or None for default cases: with weights 0.9 without 50%
+
+    from_date: str
+        Date in the same format as in the filenames. Files before this
+            date are ignored.
+
+    to_date: str
+        Date in the same format as in the filenames. Files after this
+            date are ignored.
+
+    only_complete: Boolean
+        if True all voters that are not within all profiles are removed.
+
+    with_weights: Boolean
+        States if weights are used to decide on the approval set.
+    Returns
+    -------
+    list, list
+        A list of ApprovalProfiles.
+        A list of all voters.
+
+
+    from_date and to_date are strings that state the first
+    file to consider and the last one.
+
+    """
     file_dir, files = get_file_names(dir_name)
 
     approval_profiles = []
@@ -25,38 +65,38 @@ def start_tsoi_load(dir_name, max_approvals=None,
         # (YYYYMMDD)
         files = sorted(files)
         for f in files:
-            if f.endswith('.tsoi'):
+            if f.endswith(".tsoi") or f.endswith(".ttoi"):
                 if from_date is not None or to_date is not None:
-                    date = f.split("_")[-1].split(".tsoi")[0]
+                    date = f.split("_")[-1].split(".t")[0]
                     if from_date is not None and date < from_date:
                         continue
                     if to_date is not None and date > to_date:
                         break
-                candidates, profile = load_tsoi_file(
-                    os.path.join(file_dir, f), max_approvals)
+                candidates, profile = load_file(
+                    os.path.join(file_dir, f), threshold, with_weights)
                 approval_profiles.append(profiles.ApprovalProfile(
                     list(profile.keys()), candidates, profile))
                 all_voters = all_voters.union(list(profile.keys()))
     if only_complete:
         approval_profiles, all_voters = \
             remove_additional_voters(approval_profiles, all_voters)
+    if len(approval_profiles) == 0 or len(all_voters) == 0:
+        raise Exception("No data found in", dir_name)
     return approval_profiles, all_voters
 
 
-# Loads the given file.
-# Only considers up to max_approvals alternatives per voter.
-# If no max_approvals is given it takes 50% of the alternatives
-# (at least one).
-def load_tsoi_file(abs_path, max_approvals):
+def load_file(abs_path, threshold, with_weights):
     with open(abs_path, "r") as f:
         lines = f.readlines()
         candidate_count = int(lines[0])
         after_candidates = candidate_count + 1
-        candidates = []
-        for line in lines[1:after_candidates]:
-            split_line = line.split(',')[1:]
-            joined_line = ','.join(split_line)
-            candidates.append(joined_line.strip())
+        # candidates = {}
+        # for line in lines[1:after_candidates]:
+        #     split_line = line.split(',')
+        #     id = split_line[0].strip()
+        #     split_line = split_line[1:]
+        #     joined_line = ','.join(split_line)
+        #     candidates[id] = joined_line.strip()
         profile = {}
         rankings_count = int(lines[after_candidates].split(',')[1])
         last_ranking_line = after_candidates + 1 + rankings_count
@@ -68,107 +108,122 @@ def load_tsoi_file(abs_path, max_approvals):
                 print("ranking Data seems to have wrong format in "
                       "file",
                       abs_path)
+                raise Exception("Unknown format", line)
             local_ranking = []
             profile[parts[0]] = local_ranking  # name of the voter
-            if max_approvals is None:
-                take = max(len(parts[1].split(',')[1:]) / 2, 1)
+            if with_weights:
+                get_ranking_with_weights(parts[1], local_ranking,
+                                         threshold)
             else:
-                take = max_approvals
-            for vote in parts[1].split(',')[
-                        1:]:  # the first number is a count, this can
-                # be ignored here
-                if take > 0:
-                    take -= 1
-                    local_ranking.append(int(vote))
-                    used_candidates.add(int(vote))
-                else:
-                    break
+                get_ranking_without_weights(parts[1], local_ranking,
+                                            threshold)
+            for candidate in local_ranking:
+                used_candidates.add(candidate)
 
         return list(used_candidates), profile
 
 
-# This loads csv files with spotify charts and returns a list of
-# approval profiles
-# and a list of all voters from  these profiles
-# from_date and to_date are strings that state the first file to
-# consider and the last one.
-def start_spotify_csv_load(dir_name, approval_percent=0.8,
-                           from_date=None, to_date=None,
-                           only_complete=False):
-    file_dir, files = get_file_names(dir_name)
+def get_ranking_with_weights(line, appr_set, threshold):
+    if threshold is None:
+        threshold = 0.9
+    ranking = line.split(',')[1:]
+    if len(ranking) == 0:
+        return
 
-    approval_profiles = []
-    all_voters = set()
-    candidates = set()
-    profile = {}
-    if file_dir is not None:
-        files = sorted(
-            files)  # sorts from oldest to newest if name is sortable
-        # by date (YYYYMMDD)
-        date = None
-        for f in files:
-            file_date = f.split("_")[
-                1]  # date should be between first and second "_"
-            if f.endswith('.csv'):
-                if from_date is not None or to_date is not None:
-                    if from_date is not None and file_date < from_date:
-                        continue
-                    if to_date is not None and file_date > to_date:
-                        break
-                if date is None or file_date != date:
-                    if len(profile) > 0:
-                        profiles.ApprovalProfile(list(profile.keys()),
-                                                 candidates, profile)
-                        approval_profiles.append(
-                            profiles.ApprovalProfile(
-                                list(profile.keys()), candidates,
-                                profile))
-                        all_voters = all_voters.union(
-                            list(profile.keys()))
-                    profile = {}
-                    date = file_date
-                    candidates = set()
-                load_spotify_csv_file(os.path.join(file_dir, f),
-                                      candidates, profile,
-                                      approval_percent)
-    if len(profile) > 0:
-        profiles.ApprovalProfile(list(profile.keys()), candidates,
-                                 profile)
-        approval_profiles.append(profiles.ApprovalProfile(
-            list(profile.keys()), candidates, profile))
-        all_voters = all_voters.union(list(profile.keys()))
-    if only_complete:
-        approval_profiles, all_voters = \
-            remove_additional_voters(approval_profiles, all_voters)
-    return approval_profiles, all_voters
+    max_weight = None
+    tied = False
+    curr_voters = ""
+    for i in range(len(ranking)):
+        voter = ranking[i].strip()
+        if not tied:
+            if voter.startswith("{"):
+                tied = True
+                curr_voters = voter
+                if "}" in voter:
+                    raise Exception("Single voter in {} is invalid")
+            else:
+                if max_weight is None:
+                    max_weight = get_weight(voter)
+                if get_weight(voter) >= max_weight * threshold:
+                    add_candidate(voter, appr_set)
+                else:
+                    break
+        else:
+            curr_voters += "," + voter
+            if "}" in curr_voters:
+                tied = False
+                if max_weight is None:
+                    max_weight = get_weight(curr_voters)
+                if get_weight(curr_voters) >= max_weight * threshold:
+                    add_candidate(curr_voters, appr_set)
+                    curr_voters = ""
+                else:
+                    break
+            else:
+                continue
 
 
-# Opens a given spotify csv file.
-# All the used candidates are added to the set used_candidates.
-# All alternatives that reached at least highest_streaming_number *
-# max_approval_percent streams
-# are added to the profile for the given voter
-def load_spotify_csv_file(abs_path, used_candidates, profile,
-                          approval_percent):
-    with open(abs_path, "r") as f:
-        lines = f.readlines()
-        if len(lines) > 1:
-            if not lines[1].startswith('NA,NA,'):
-                minimum_streams = None
-                voter = None
-                for line in lines[1:]:
-                    x = line.split(",")
-                    if voter is None:
-                        voter = x[-2]
-                        minimum_streams = float(
-                            x[-4]) * approval_percent
-                        profile[voter] = []
-                    alternative_id = x[-1].strip()
-                    streams = float(x[-4])
-                    if streams < minimum_streams:
-                        break
-                    profile[voter].append(alternative_id)
-                    used_candidates.add(alternative_id)
+def get_weight(rank):
+    parts = rank.split("[")
+    if len(parts) != 2:
+        raise Exception("Invalid format for with weights")
+    else:
+        weight = float(parts[1].split("]")[0])
+    return weight
+
+
+def add_candidate(rank, appr_set):
+    parts = rank.split("[")
+    if 0 < len(parts) < 3:
+        candidate = parts[0].strip()
+        if candidate.find("{") != -1:
+            if candidate[0] != "{" or candidate[-1] != "}":
+                raise Exception("Invalid format for tied candidates.",
+                                rank)
+            candidates = candidate[1:-1].split(",")
+            for c in candidates:
+                appr_set.append(int(c.strip()))
+        else:
+            appr_set.append(int(candidate))
+    else:
+        raise Exception("Invalid format.", rank)
+
+
+def get_ranking_without_weights(line, appr_set, threshold):
+    ranking = line.split(',')[1:]
+    if threshold is None:
+        threshold = max(len(ranking) / 2, 1)
+
+    if len(ranking) == 0:
+        return
+
+    tied = False
+    curr_voters = ""
+    for i in range(len(ranking)):
+        if threshold > 0:
+            voter = ranking[i].strip()
+            if not tied:
+                if voter.startswith("{"):
+                    tied = True
+                    # count = 1
+                    curr_voters = voter
+                    if "}" in voter:
+                        raise Exception("Single voter in {} is invalid")
+                else:
+                    add_candidate(voter, appr_set)
+                    threshold -= 1
+            else:
+                curr_voters += "," + voter
+                # count += 1
+                if "}" in voter:
+                    add_candidate(curr_voters, appr_set)
+                    curr_voters = ""
+                    threshold -= 1  # or -= count
+                    # count = 0
+                else:
+                    continue
+        else:
+            break
 
 
 def get_file_names(dir_name):
@@ -179,10 +234,14 @@ def get_file_names(dir_name):
         file_dir = dir_path
         files = filenames
         break
+    if file_dir is None or len(files) == 0:
+        raise Exception("No files found in ", input_path)
     return file_dir, files
 
 
 def remove_additional_voters(approval_profiles, all_voters):
+    """Generates a list of profiles that all have exactly the same
+    voters."""
     voters = set(all_voters)
     for profile in approval_profiles:
         voters = voters.intersection(profile.voters)
@@ -205,6 +264,7 @@ def remove_additional_voters(approval_profiles, all_voters):
                                                           list(cands),
                                                           appr_set))
     return appr_profiles, voters
+
 
 
 
