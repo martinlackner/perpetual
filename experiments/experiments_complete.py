@@ -14,6 +14,7 @@ sys.path.insert(0, '..')
 import file_loader
 from perpetual_rules import PERPETUAL_RULES
 
+
 random.seed(31415)
 
 rules = ["av",
@@ -73,10 +74,8 @@ for spec in exp_specs:
     else:
         print("loading results from", picklefile)
         with open(picklefile, 'rb') as f:
-            aver_quotacompl, max_quotadeviation, \
-            aver_satisfaction, aver_influencegini = pickle.load(f)
-
-    # analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation)
+            (aver_quotacompl, max_quotadeviation,
+             aver_satisfaction, aver_influencegini) = pickle.load(f)
 
     statistical_significance(aver_quotacompl, aver_influencegini)
 
@@ -194,4 +193,3 @@ plot_data("only_complete_tsoi_data",
           rules)
 
 print("Done with files (only complete voters allowed)")
-

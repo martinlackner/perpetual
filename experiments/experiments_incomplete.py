@@ -11,6 +11,7 @@ sys.path.insert(0, '..')
 import file_loader
 from perpetual_rules import PERPETUAL_RULES
 
+
 # experiments from files
 random.seed(31415)
 
@@ -117,8 +118,8 @@ for missing_rule in missing_rules[1:]:
     else:
         print("loading results from", picklefile)
         with open(picklefile, 'rb') as f:
-            aver_quotacompl, max_quotadeviation, \
-            aver_satisfaction, aver_influencegini = pickle.load(f)
+            (aver_quotacompl, max_quotadeviation,
+             aver_satisfaction, aver_influencegini) = pickle.load(f)
 
     statistical_significance(aver_quotacompl, aver_influencegini)
 
@@ -131,4 +132,3 @@ for missing_rule in missing_rules[1:]:
               rules)
 
     print("Done with files and missing rule")
-

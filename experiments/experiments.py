@@ -1,9 +1,3 @@
-# Experiments used in the paper
-# Perpetual Voting: Fairness in Long-Term Decision Making
-# Martin Lackner
-# Proceedings of AAAI 2020
-
-
 from __future__ import print_function
 from future.utils import listvalues
 import pickle
@@ -28,18 +22,7 @@ sys.path.insert(0, '..')
 import profiles
 import perpetual_rules as perpetual
 import perpetual_rules
-from perpetual_rules import PERPETUAL_RULES, SHORT_RULENAMES
-
-########################################################################
-
-
-def save_twodim_dict_as_csv(name, indexrow, indexcol, dictionary):
-    with open('csv/' + name + '.csv', 'w') as csvfile:
-        csvwriter = csv.writer(csvfile, lineterminator='\n')
-        csvwriter.writerow([''] + indexcol)
-        for i in indexrow:
-            csvwriter.writerow([i]
-                               + [dictionary[i][j] for j in indexcol])
+from perpetual_rules import SHORT_RULENAMES
 
 ########################################################################
 
@@ -109,7 +92,7 @@ def plot_data(exp_name, aver_quotacompl, max_quotadeviation,
               aver_satisfaction, aver_influencegini, rules):
     def generate_boxplot(data, bottom, top, name):
             pos = [0.06 + 0.11 * i for i in range(len(rules))]
-            plt.boxplot([data[compute_rule] for compute_rule in rules],
+            plt.boxplot([data[rule] for rule in rules],
                         widths=0.08,
                         positions=pos,
                         whis=10**10)
@@ -118,8 +101,7 @@ def plot_data(exp_name, aver_quotacompl, max_quotadeviation,
             plt.xlim(0, max(pos) + 0.06)
             xnames = [SHORT_RULENAMES[r] for r in rules]
             plt.xticks(pos, xnames, rotation=0, fontsize=11)
-            upper_labels = [np.median(data[compute_rule])
-                            for compute_rule in rules]
+            upper_labels = [np.median(data[rule]) for rule in rules]
             for i in range(len(pos)):
                 plt.text(pos[i], top + 0.06 * (top - bottom),
                          str("{0:.3f}".format(upper_labels[i])),
@@ -143,11 +125,10 @@ def plot_data(exp_name, aver_quotacompl, max_quotadeviation,
                      "max_quota_deviation_" + exp_name)
 
     # normalized average satisfaction
-    norm_aver_satisfaction = \
-        {compute_rule: [] for compute_rule in rules}
-    for compute_rule in rules:
-        norm_aver_satisfaction[compute_rule] = [
-            aver_satisfaction[compute_rule][i] / aver_satisfaction["av"][i]
+    norm_aver_satisfaction = {rule: [] for rule in rules}
+    for rule in rules:
+        norm_aver_satisfaction[rule] = [
+            aver_satisfaction[rule][i] / aver_satisfaction["av"][i]
             for i in range(len(aver_satisfaction["av"]))]
     generate_boxplot(norm_aver_satisfaction, 0.7, 1,
                      "normalized_average_satisfaction_" + exp_name)
@@ -159,15 +140,15 @@ def plot_data(exp_name, aver_quotacompl, max_quotadeviation,
 
 def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
                         aver_satisfaction, aver_influencegini,
-                        missing_rule=None):
+                        rules, missing_rule=None):
     voters = get_all_voters(history)
     cands = get_all_candidates(history)
 
-    for compute_rule in PERPETUAL_RULES:
-        # print "*" * (len(compute_rule) + 4)
-        # print "*",compute_rule.upper(),"*"
-        # print "*" * (len(compute_rule) + 4)
-        weights = perpetual_rules.init_weights(compute_rule, voters)
+    for rule in rules:
+        # print "*" * (len(rule) + 4)
+        # print "*",rule.upper(),"*"
+        # print "*" * (len(rule) + 4)
+        weights = perpetual_rules.init_weights(rule, voters)
 
         support = dict.fromkeys(voters, 0)
         wins = dict.fromkeys(voters, 0)
@@ -176,7 +157,7 @@ def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
         influence = dict.fromkeys(voters, 0)
 
         for profile in history:
-            winner = perpetual.compute_rule(compute_rule, profile,
+            winner = perpetual.compute_rule(rule, profile,
                                             weights,
                                             missing_rule=missing_rule)
             assert(winner in cands)
@@ -189,112 +170,21 @@ def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
         quota_compliance = (quota_compliance
                             / len(history)
                             / len(voters))
-        aver_quotacompl[compute_rule].append(quota_compliance)
+        aver_quotacompl[rule].append(quota_compliance)
 
         quota_deviation = float(max(quota_deviation.values()))
-        max_quotadeviation[compute_rule].append(quota_deviation)
+        max_quotadeviation[rule].append(quota_deviation)
 
         satisfaction = float(sum(wins.values()))
         satisfaction = satisfaction / len(history) / len(voters)
-        aver_satisfaction[compute_rule].append(satisfaction)
+        aver_satisfaction[rule].append(satisfaction)
 
-        aver_influencegini[compute_rule].append(
+        aver_influencegini[rule].append(
             calculate_gini(listvalues(influence)))
 
 
-def analyze_exp_results(exp_name, aver_quotacompl, max_quotadeviation):
-        compare = {}
-        num_samples = len(max_quotadeviation.values()[0])
-        compare["aver_quotacompl"] = \
-            {compute_rule: {} for compute_rule in PERPETUAL_RULES}
-        compare["max_quotadeviation"] = \
-            {compute_rule: {} for compute_rule in PERPETUAL_RULES}
-        for compute_rule in PERPETUAL_RULES:
-            compare["aver_quotacompl"][compute_rule] = \
-                {compute_rule: 0 for compute_rule in PERPETUAL_RULES}
-            compare["max_quotadeviation"][compute_rule] = \
-                {compute_rule: 0 for compute_rule in PERPETUAL_RULES}
-        for rule1 in PERPETUAL_RULES:
-            for rule2 in PERPETUAL_RULES:
-                for i in range(num_samples):
-                    if aver_quotacompl[rule1][i] >\
-                            aver_quotacompl[rule2][i]:
-                        compare["aver_quotacompl"][rule1][rule2] += 1
-                    if (max_quotadeviation[rule1][i] >
-                            max_quotadeviation[rule2][i]):
-                        compare["max_quotadeviation"][rule1][rule2] += 1
-        for rule1 in PERPETUAL_RULES:
-            for rule2 in PERPETUAL_RULES:
-                compare["aver_quotacompl"][rule1][rule2] = \
-                    (float(compare["aver_quotacompl"][rule1][rule2])
-                     / num_samples)
-                compare["max_quotadeviation"][rule1][rule2] = \
-                    (float(compare["max_quotadeviation"][rule1][rule2])
-                     / num_samples)
-        save_twodim_dict_as_csv("max_quotadeviation_" + exp_name,
-                                PERPETUAL_RULES,
-                                PERPETUAL_RULES,
-                                compare["max_quotadeviation"])
-        save_twodim_dict_as_csv("aver_quotacompl_" + exp_name,
-                                PERPETUAL_RULES,
-                                PERPETUAL_RULES,
-                                compare["aver_quotacompl"])
-
-        expected_order1 = {"pav": 6,
-                           "subtraction_numvoters": 4,
-                           "subtraction_one": 8,
-                           "reset": 5,
-                           "per_nash": 7,
-                           "per_cc": 0,
-                           "av": 2,
-                           "per_phragmen": 3,
-                           "per_quota": 9,
-                           "serial_dictatorship": 1}
-
-        expected_order2 = {"pav": 5,
-                           "subtraction_numvoters": 7,
-                           "subtraction_one": 8,
-                           "reset": 4,
-                           "per_nash": 6,
-                           "per_cc": 1,
-                           "av": 2,
-                           "per_phragmen": 3,
-                           "per_quota": 9,
-                           "serial_dictatorship": 0}
-
-        print("aver_quotacompl")
-        for rule1 in sorted(PERPETUAL_RULES,
-                            key=lambda r: expected_order1[r]):
-            for rule2 in sorted(PERPETUAL_RULES,
-                                key=lambda r: expected_order1[r]):
-                if expected_order1[rule1] == expected_order1[rule2]:
-                    print("x", end=' ')
-                elif (compare["aver_quotacompl"][rule1][rule2] >
-                      compare["aver_quotacompl"][rule2][rule1]):
-                    print(1, end=' ')
-                else:
-                    print(0, end=' ')
-            print(str("{0:.3f}".format(np.mean(aver_quotacompl[rule1])))
-                  , rule1)
-
-        print("max_quotadeviation")
-        for rule1 in sorted(PERPETUAL_RULES,
-                            key=lambda r: expected_order2[r]):
-            for rule2 in sorted(PERPETUAL_RULES,
-                                key=lambda r: expected_order2[r]):
-                if expected_order2[rule1] == expected_order2[rule2]:
-                    print("x", end=' ')
-                elif (compare["max_quotadeviation"][rule1][rule2] <
-                        compare["max_quotadeviation"][rule2][rule1]):
-                    print(1, end=' ')
-                else:
-                    print(0, end=' ')
-            print(str("{0:.3f}".format(np.mean(
-                max_quotadeviation[rule1]))), end=' ')
-            print(rule1)
-
-
 def statistical_significance(aver_quotacompl, aver_influencegini):
+    rules = aver_quotacompl.keys()
     for rule1 in rules:
         for rule2 in rules:
             if rule1 == rule2:
@@ -457,9 +347,9 @@ def generate_instances(exp_specs):
         picklefile = "../pickle/experiments-" + name + ".pickle"
         if not exists(picklefile):
             print("generating instances for spec", spec)
-            num_simulations, num_voters, num_cands, num_rounds, \
-            sigma, voterpointmode, candpointmode, \
-            approval_threshold = spec
+            (num_simulations, num_voters, num_cands, num_rounds,
+             sigma, voterpointmode, candpointmode,
+             approval_threshold) = spec
 
             instances[str(spec)] = []
             for _ in range(num_simulations):
