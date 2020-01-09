@@ -91,7 +91,7 @@ for missing_rule in missing_rules[1:]:
                 data_instances.append(
                     history[i*instance_size:(i+1)*instance_size])
 
-        multiplier *= 2
+        multiplier += 1
         percent -= 0.14
 
     print("number of instances:", len(data_instances))
