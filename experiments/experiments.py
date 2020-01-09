@@ -13,8 +13,6 @@ except ImportError:
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import csv
-
 from scipy import stats
 
 import sys
