@@ -258,7 +258,7 @@ def __per_subtraction(profile, weights, subtr_mode="numvoters"):
             if len(score) > 1:
                 second_prize = sorted(score.values())[-2]
             else:
-                second_prize = score.values()[0]
+                second_prize = list(score.values())[0]
             factor = 1 - 1. * second_prize / score[winner]
             if winner in profile.approval_sets[v] and weights[v] > 0:
                 weights[v] *= factor
