@@ -32,7 +32,8 @@ PERPETUAL_RULES = ["per_pav",
                    "random_dictatorship",
                    "per_2nd_prize",
                    "rotating_dictatorship",
-                   "rotating_serial_dictatorship"
+                   "rotating_serial_dictatorship",
+                   "min_dry_spell"
                    ]
 """List of available voting rules."""
 
@@ -53,7 +54,8 @@ SHORT_RULENAMES = {"per_pav": "Per. PAV",
                    "random_dictatorship": "SD",
                    "per_2nd_prize": "p-2nd",
                    "rotating_dictatorship": "Rot. Dict.",
-                   "rotating_serial_dictatorship": "Rot. Serial Dict."
+                   "rotating_serial_dictatorship": "Rot. Serial Dict.",
+                   "min_dry_spell": "Min Dry Spell"
                    }
 """Dictionary with shortcuts for the rule names."""
 
@@ -169,6 +171,8 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         return rotating_dictatorship(profile, weights)
     elif rule == "rotating_serial_dictatorship":
         return rotating_serial_dictatorship(profile, weights)
+    elif rule == "min_dry_spell":
+        return min_dry_spell(profile, weights)
     else:
         raise NotImplementedError("rule " + str(rule) + " unknown")
 
@@ -556,3 +560,23 @@ def rotating_serial_dictatorship(profile, weights):
             if cands & set(profile.approval_sets[v]):
                 cands = cands & set(profile.approval_sets[v])
         return sorted(list(cands))[0]
+
+
+def min_dry_spell(profile, weights):
+    max_weight = max(weights.values())
+    score = {c: 0 for c in profile.cands}
+    unsat_voters = [v for v in profile.voters
+                    if weights[v] == max_weight]
+
+    for v in unsat_voters:
+        for c in profile.approval_sets[v]:
+            score[c] += 1
+
+    max_score = max(score.values())
+    winner = [c for c in profile.cands if score[c] == max_score][0]
+    for voter in profile.voters:
+        if winner in profile.approval_sets[voter]:
+            weights[voter] = 0
+        else:
+            weights[voter] += 1
+    return winner
