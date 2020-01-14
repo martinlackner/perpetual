@@ -23,7 +23,10 @@ rules = ["av",
          "per_unitcost",
          "per_consensus",
          "serial_dictatorship",
-         "per_quota_mod"
+         "per_quota_mod",
+         "rotating_dictatorship",
+         "rotating_serial_dictatorship",
+         "min_dry_spell"
          ]
 
 # This example uses data from
