@@ -30,7 +30,9 @@ PERPETUAL_RULES = ["per_pav",
                    # "per_quota_min",
                    "serial_dictatorship",
                    "random_dictatorship",
-                   "per_2nd_prize"
+                   "per_2nd_prize",
+                   "rotating_dictatorship",
+                   "rotating_serial_dictatorship"
                    ]
 """List of available voting rules."""
 
@@ -49,7 +51,9 @@ SHORT_RULENAMES = {"per_pav": "Per. PAV",
                    "per_quota_min": "p-Quo-min",
                    "serial_dictatorship": "Rand. Serial Dict.",
                    "random_dictatorship": "SD",
-                   "per_2nd_prize": "p-2nd"
+                   "per_2nd_prize": "p-2nd",
+                   "rotating_dictatorship": "Rot. Dict.",
+                   "rotating_serial_dictatorship": "Rot. Serial Dict."
                    }
 """Dictionary with shortcuts for the rule names."""
 
@@ -161,6 +165,10 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         return per_majority(profile, weights)
     elif rule == "per_2nd_prize":
         return per_2nd_prize(profile, weights)
+    elif rule == "rotating_dictatorship":
+        return rotating_dictatorship(profile, weights)
+    elif rule == "rotating_serial_dictatorship":
+        return rotating_serial_dictatorship(profile, weights)
     else:
         raise NotImplementedError("rule " + str(rule) + " unknown")
 
@@ -500,3 +508,51 @@ def serial_dictatorship(profile):
         if cands & set(profile.approval_sets[v]):
             cands = cands & set(profile.approval_sets[v])
     return random.choice(list(cands))
+
+
+def rotating_dictatorship(profile, weights):
+    voters = [v for (v, appr) in iteritems(profile.approval_sets)
+              if len(appr) > 0]
+    possible_dictators = []
+    for voter, weight in iteritems(weights):
+        if weight == 0 and voter in voters:
+            possible_dictators.append(voter)
+    if len(possible_dictators) > 0:
+        dictator = sorted(possible_dictators)[0]
+        winner = profile.approval_sets[dictator][0]
+        weights[dictator] = 1
+        return winner
+    else:
+        voters = sorted(voters)
+        dictator = voters[0]
+        for voter in weights:
+            weights[voter] = 0
+        weights[dictator] = 1
+        return profile.approval_sets[dictator][0]
+
+
+def rotating_serial_dictatorship(profile, weights):
+    voters = [v for (v, appr) in iteritems(profile.approval_sets)
+              if len(appr) > 0]
+    voters = sorted(voters)
+    possible_dictators = []
+    cands = set(profile.cands)
+    for voter, weight in iteritems(weights):
+        if weight == 0 and voter in voters:
+            possible_dictators.append(voter)
+    if len(possible_dictators) > 0:
+        dictator = sorted(possible_dictators)[0]
+        weights[dictator] = 1
+        for v in voters[voters.index(dictator):]:
+            if cands & set(profile.approval_sets[v]):
+                cands = cands & set(profile.approval_sets[v])
+        return sorted(list(cands))[0]
+    else:
+        dictator = voters[0]
+        for voter in weights:
+            weights[voter] = 0
+        weights[dictator] = 1
+        for v in voters:
+            if cands & set(profile.approval_sets[v]):
+                cands = cands & set(profile.approval_sets[v])
+        return sorted(list(cands))[0]
