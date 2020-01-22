@@ -192,7 +192,7 @@ def add_candidate(rank, appr_set):
 def get_ranking_without_weights(line, appr_set, threshold):
     ranking = line.split(',')[1:]
     if threshold is None:
-        threshold = max(len(ranking) / 2, 1)
+        threshold = max(len(ranking) // 2, 1)
 
     if len(ranking) == 0:
         return

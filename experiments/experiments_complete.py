@@ -26,7 +26,10 @@ rules = ["av",
          "per_unitcost",
          "per_consensus",
          "serial_dictatorship",
-         "per_quota_mod"
+         "per_quota_mod",
+         "rotating_dictatorship",
+         "rotating_serial_dictatorship",
+         "min_dry_spell"
          ]
 
 # This part of the example is nearly the same as the aaai one,
@@ -80,7 +83,7 @@ for spec in exp_specs:
     statistical_significance(aver_quotacompl, aver_influencegini)
 
     # create plots
-    plot_data(exp_name,
+    plot_data("extra-" + exp_name,
               aver_quotacompl,
               max_quotadeviation,
               aver_satisfaction,

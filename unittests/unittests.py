@@ -213,7 +213,10 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_phragmen": [3, 2, 3, 3, 2, 3],
                     "per_quota": [3, 2, 3, 3, 2, 3],
                     "per_quota_mod": [3, 2, 3, 3, 2, 3],
-                    "per_2nd_prize": [3, 3, 2, 3, 3, 3]}
+                    "per_2nd_prize": [3, 3, 2, 3, 3, 3],
+                    "rotating_dictatorship": [3, 3, 2]*2,
+                    "rotating_serial_dictatorship": [3, 3, 2]*2,
+                    "min_dry_spell": [3, 2]*3}
 
         self.longMessage = True
 
@@ -249,7 +252,10 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_phragmen": [3, 2, 3, 3, 2, 3],
                     "per_quota": [3, 2, 3, 3, 2, 3],
                     "per_quota_mod": [3, 2, 3, 3, 2, 3],
-                    "per_2nd_prize": [3, 3, 2, 3, 3, 3]}
+                    "per_2nd_prize": [3, 3, 2, 3, 3, 3],
+                    "rotating_dictatorship": [3, 3, 2]*2,
+                    "rotating_serial_dictatorship": [3, 3, 2]*2,
+                    "min_dry_spell": [3, 2]*3}
 
         self.longMessage = True
 
@@ -285,7 +291,10 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_phragmen": [3, 3, 2, 1, 1, 2],
                     "per_quota": [3, 3, 2, 1, 1, 2],
                     "per_quota_mod": [3, 3, 2, 1, 1, 2],
-                    "per_2nd_prize": [3, 3, 2, 1, 3, 2]}
+                    "per_2nd_prize": [3, 3, 2, 1, 3, 2],
+                    "rotating_dictatorship": [3, 2, 2, 3, 3, 1],
+                    "rotating_serial_dictatorship": [3, 2, 2, 3, 3, 1],
+                    "min_dry_spell": [3, 3, 2, 1, 1, 1]}
 
         self.longMessage = True
 
@@ -322,7 +331,10 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_phragmen": [1, 1, 2, 1, 3, 2],
                     "per_quota": [1, 1, 2, 1, 3, 2],
                     "per_quota_mod": [1, 1, 2, 1, 3, 2],
-                    "per_2nd_prize": [1, 1, 2, 1, 1, 3]}
+                    "per_2nd_prize": [1, 1, 2, 1, 1, 3],
+                    "rotating_dictatorship": [3, 2, 2, 3, 3, 1],
+                    "rotating_serial_dictatorship": [1, 2, 2, 3, 3, 1],
+                    "min_dry_spell": [1, 1, 2, 1, 1, 3]}
 
         self.longMessage = True
 
@@ -358,7 +370,10 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_phragmen": [1, 1, 2, 1, 1, 2],
                     "per_quota": [1, 1, 2, 1, 1, 2],
                     "per_quota_mod": [1, 2, 1, 1, 2, 1],
-                    "per_2nd_prize": [1, 1, 2, 1, 1, 2]}
+                    "per_2nd_prize": [1, 1, 2, 1, 1, 2],
+                    "rotating_dictatorship": [3, 3, 2]*2,
+                    "rotating_serial_dictatorship": [1, 1, 2]*2,
+                    "min_dry_spell": [1, 2]*3}
 
         self.longMessage = True
 
@@ -394,7 +409,10 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_phragmen":  [3]*6,
                     "per_quota":  [3]*6,
                     "per_quota_mod":  [3]*6,
-                    "per_2nd_prize":  [3]*6}
+                    "per_2nd_prize":  [3]*6,
+                    "rotating_dictatorship": [3, 3, 2]*2,
+                    "rotating_serial_dictatorship": [3, 3, 2]*2,
+                    "min_dry_spell": [3]*6}
 
         self.longMessage = True
 

@@ -239,13 +239,13 @@ def generate_2d_points(agents, mode, sigma):
         def within_bounds(point):
             return (point[0] <= 1 and point[0] >= -1 and
                     point[1] <= 1 and point[1] >= -1)
-        for i in range(int(len(agents) / 3)):
+        for i in range(int(len(agents) // 3)):
             while True:
                 points[agents[i]] = (random.gauss(-0.5, sigma),
                                      random.gauss(-0.5, sigma))
                 if within_bounds(points[agents[i]]):
                     break
-        for i in range(len(agents) / 3, len(agents)):
+        for i in range(len(agents) // 3, len(agents)):
             while True:
                 points[agents[i]] = (random.gauss(0.5, sigma),
                                      random.gauss(0.5, sigma))
@@ -254,28 +254,28 @@ def generate_2d_points(agents, mode, sigma):
     # normal distribution, 1/3 of agents centered on (-0.5,-0.5),
     #                      2/3 of agents on (0.5,0.5)
     elif mode == "eucl2":
-        for i in range(int(len(agents) / 3)):
+        for i in range(int(len(agents) // 3)):
             points[agents[i]] = (random.gauss(-0.5, sigma),
                                  random.gauss(-0.5, sigma))
-        for i in range(int(len(agents) / 3), len(agents)):
+        for i in range(int(len(agents) // 3), len(agents)):
             points[agents[i]] = (random.gauss(0.5, sigma),
                                  random.gauss(0.5, sigma))
     # normal distribution, 1/5 of agents centered on (-0.5,-0.5),
     #                      4/5 of agents on (0.5,0.5)
     elif mode == "eucl4":
-        for i in range(len(agents) / 5):
+        for i in range(len(agents) // 5):
             points[agents[i]] = (random.gauss(-0.5, sigma),
                                  random.gauss(-0.5, sigma))
-        for i in range(len(agents) / 5, len(agents)):
+        for i in range(len(agents) // 5, len(agents)):
             points[agents[i]] = (random.gauss(0.5, sigma),
                                  random.gauss(0.5, sigma))
     # normal distribution, 3/5 of agents centered on (-0.25,0),
     #                      2/5 of agents on (0.25,0)
     elif mode == "eucl6":
-        for i in range(2 * len(agents) / 5):
+        for i in range(2 * len(agents) // 5):
             points[agents[i]] = (random.gauss(-0.25, sigma),
                                  random.gauss(0, sigma))
-        for i in range(2 * len(agents) / 5, len(agents)):
+        for i in range(2 * len(agents) // 5, len(agents)):
             points[agents[i]] = (random.gauss(0.25, sigma),
                                  random.gauss(0, sigma))
     # normal distribution
@@ -285,16 +285,16 @@ def generate_2d_points(agents, mode, sigma):
                                  random.gauss(0., sigma))
     # normal distribution, each 1/4 of agents centered on (+-0.5,+-0.5)
     elif mode == "eucl5":
-        for i in range(len(agents) / 4):
+        for i in range(len(agents) // 4):
             points[agents[i]] = (random.gauss(-0.5, sigma),
                                  random.gauss(-0.5, sigma))
-        for i in range(len(agents) / 4, 2 * len(agents) / 4):
+        for i in range(len(agents) // 4, 2 * len(agents) // 4):
             points[agents[i]] = (random.gauss(0.5, sigma),
                                  random.gauss(0.5, sigma))
-        for i in range(2 * len(agents) / 4, 3 * len(agents) / 4):
+        for i in range(2 * len(agents) // 4, 3 * len(agents) // 4):
             points[agents[i]] = (random.gauss(-0.5, sigma),
                                  random.gauss(0.5, sigma))
-        for i in range(3 * len(agents) / 4, len(agents)):
+        for i in range(3 * len(agents) // 4, len(agents)):
             points[agents[i]] = (random.gauss(0.5, sigma),
                                  random.gauss(-0.5, sigma))
     # normal distribution, 1/5 of agents centered on (-0.5,-0.5),
@@ -302,23 +302,23 @@ def generate_2d_points(agents, mode, sigma):
     #                      1/5 of agents centered on (0.5,-0.5),
     #                      2/5 of agents on (0.5,0.5)
     elif mode == "eucl3":
-        for i in range(len(agents) / 5):
+        for i in range(len(agents) // 5):
             points[agents[i]] = (random.gauss(-0.5, sigma),
                                  random.gauss(-0.5, sigma))
-        for i in range(len(agents) / 5, 2 * len(agents) / 5):
+        for i in range(len(agents) // 5, 2 * len(agents) // 5):
             points[agents[i]] = (random.gauss(-0.5, sigma),
                                  random.gauss(0.5, sigma))
-        for i in range(2 * len(agents) / 5, 3 * len(agents) / 5):
+        for i in range(2 * len(agents) // 5, 3 * len(agents) // 5):
             points[agents[i]] = (random.gauss(0.5, sigma),
                                  random.gauss(-0.5, sigma))
-        for i in range(3 * len(agents) / 5, len(agents)):
+        for i in range(3 * len(agents) // 5, len(agents)):
             points[agents[i]] = (random.gauss(0.5, sigma),
                                  random.gauss(0.5, sigma))
     elif mode == "eucl2plus":
-        for i in range(len(agents) / 6):
+        for i in range(len(agents) // 6):
             points[agents[i]] = (random.gauss(-0.5, sigma),
                                  random.gauss(-0.5, sigma))
-        for i in range(len(agents) / 6, len(agents)):
+        for i in range(len(agents) // 6, len(agents)):
             points[agents[i]] = (random.gauss(0.5, sigma),
                                  random.gauss(0.5, sigma))
     elif mode == "uniform_square":
