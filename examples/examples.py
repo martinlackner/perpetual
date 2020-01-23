@@ -9,7 +9,6 @@ import profiles
 import perpetual_rules as perpetual
 
 
-
 apprsets1 = {1: [1], 2: [1], 3: [2], 4: [3]}
 apprsets2 = {1: [1], 2: [2], 3: [2], 4: [3]}
 apprsets3 = {1: [1], 2: [1], 3: [2], 4: [3]}
