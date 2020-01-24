@@ -10,3 +10,5 @@ excluded
 .pydevproject
 .coverage
 htmlcov
+fig
+
