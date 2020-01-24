@@ -333,7 +333,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_quota_mod": [1, 1, 2, 1, 3, 2],
                     "per_2nd_prize": [1, 1, 2, 1, 1, 3],
                     "rotating_dictatorship": [3, 2, 2, 3, 3, 1],
-                    "rotating_serial_dictatorship": [1, 2, 2, 3, 3, 1],
+                    "rotating_serial_dictatorship": [1, 2, 2, 3, 3, 3],
                     "min_dry_spell": [1, 1, 2, 1, 1, 3]}
 
         self.longMessage = True
@@ -411,7 +411,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_quota_mod":  [3]*6,
                     "per_2nd_prize":  [3]*6,
                     "rotating_dictatorship": [3, 3, 2]*2,
-                    "rotating_serial_dictatorship": [3, 3, 2]*2,
+                    "rotating_serial_dictatorship": [3, 3, 3]*2,
                     "min_dry_spell": [3]*6}
 
         self.longMessage = True

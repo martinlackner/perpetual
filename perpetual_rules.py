@@ -546,7 +546,7 @@ def rotating_serial_dictatorship(profile, weights):
     if len(possible_dictators) > 0:
         dictator = sorted(possible_dictators)[0]
         weights[dictator] = 1
-        for v in voters[voters.index(dictator):]:
+        for v in voters[voters.index(dictator):] + voters[:voters.index(dictator)]:
             if cands & set(profile.approval_sets[v]):
                 cands = cands & set(profile.approval_sets[v])
         return sorted(list(cands))[0]
