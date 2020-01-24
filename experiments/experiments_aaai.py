@@ -76,7 +76,10 @@ for spec in exp_specs:
             (aver_quotacompl, max_quotadeviation,
              aver_satisfaction, aver_influencegini) = pickle.load(f)
 
-    statistical_significance(aver_quotacompl, aver_influencegini)
+    statistical_significance("perpetual lower quota compliance",
+                             aver_quotacompl)
+    statistical_significance("Gini influence coefficient",
+                             aver_influencegini)
 
     # create plots
     plot_data(exp_name,

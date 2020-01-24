@@ -435,6 +435,52 @@ class TestPerpetualRules(unittest.TestCase):
                     self.assertEqual(sum(weights.values()), len(voters))
                 i += 1
 
+    def test_rotating_serial_dictatorship(self):
+        appsets = {1: [1, 2], 2: [2, 3], 3: [3, 4],
+                   4: [4, 1]}
+        voters = [1, 2, 3, 4]
+        cands = [1, 2, 3, 4]
+        profile = profiles.ApprovalProfile(voters, cands, appsets)
+
+        rule = "rotating_dictatorship"
+        weights = perpetual.init_weights(rule, voters)
+
+        expected_choices = [1, 2, 3, 4]
+        for i in range(len(expected_choices)):
+            choice = perpetual.compute_rule(rule, profile, weights)
+            self.assertEqual(choice, expected_choices[i])
+
+        rule = "rotating_serial_dictatorship"
+        weights = perpetual.init_weights(rule, voters)
+
+        expected_choices = [2, 3, 4, 1]
+        for i in range(len(expected_choices)):
+            choice = perpetual.compute_rule(rule, profile, weights)
+            self.assertEqual(choice, expected_choices[i])
+
+    def test_rotating_serial_dictatorship2(self):
+        appsets = {1: [1, 2, 3], 2: [2, 3, 4], 3: [3, 4, 1],
+                   4: [4, 1, 2]}
+        voters = [1, 2, 3, 4]
+        cands = [1, 2, 3, 4]
+        profile = profiles.ApprovalProfile(voters, cands, appsets)
+
+        rule = "rotating_dictatorship"
+        weights = perpetual.init_weights(rule, voters)
+
+        expected_choices = [1, 2, 3, 4]
+        for i in range(len(expected_choices)):
+            choice = perpetual.compute_rule(rule, profile, weights)
+            self.assertEqual(choice, expected_choices[i])
+
+        rule = "rotating_serial_dictatorship"
+        weights = perpetual.init_weights(rule, voters)
+
+        expected_choices = [3, 4, 1, 2]
+        for i in range(len(expected_choices)):
+            choice = perpetual.compute_rule(rule, profile, weights)
+            self.assertEqual(choice, expected_choices[i])
+
 
 if __name__ == '__main__':
     unittest.main()

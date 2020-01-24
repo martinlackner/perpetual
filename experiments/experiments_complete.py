@@ -12,7 +12,6 @@ from experiments import run_exp_for_history, statistical_significance, \
 import sys
 sys.path.insert(0, '..')
 import file_loader
-from perpetual_rules import PERPETUAL_RULES
 
 
 random.seed(31415)
@@ -33,7 +32,7 @@ rules = ["av",
          ]
 
 # This part of the example is nearly the same as the aaai one,
-# but it also includes the rule per_quota_mod
+# but it includes additional rules
 exp_specs = [
     [10000, 20, 5, 20, 0.2, "eucl2", "uniform_square", 1.5]]
 instances = experiments.generate_instances(exp_specs)
@@ -49,10 +48,10 @@ for spec in exp_specs:
     name = str(spec).replace("]", "").replace("[", "")
     exp_name = str(name).replace(" ", "").replace("'", "")
 
-    aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
-    max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
-    aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
-    aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
+    aver_quotacompl = {rule: [] for rule in rules}
+    max_quotadeviation = {rule: [] for rule in rules}
+    aver_satisfaction = {rule: [] for rule in rules}
+    aver_influencegini = {rule: [] for rule in rules}
 
     print()
     print(spec, "with", len(curr_instances), "instances")
@@ -67,7 +66,8 @@ for spec in exp_specs:
                                 aver_quotacompl,
                                 max_quotadeviation,
                                 aver_satisfaction,
-                                aver_influencegini)
+                                aver_influencegini,
+                                rules)
 
         print("writing results to", picklefile)
         with open(picklefile, 'wb') as f:
@@ -80,7 +80,14 @@ for spec in exp_specs:
             (aver_quotacompl, max_quotadeviation,
              aver_satisfaction, aver_influencegini) = pickle.load(f)
 
-    statistical_significance(aver_quotacompl, aver_influencegini)
+    statistical_significance("perpetual lower quota compliance",
+                             aver_quotacompl)
+    statistical_significance("Gini influence coefficient",
+                             aver_influencegini)
+    statistical_significance("maximum quota deviation",
+                             max_quotadeviation)
+    statistical_significance("utilitarian voter satisfaction",
+                             aver_satisfaction)
 
     # create plots
     plot_data("extra-" + exp_name,
@@ -119,12 +126,12 @@ input_dirs = ["data/eurovision_song_contest_tsoi",
 weighted_input_dirs = ["data/spotify/daily_tsoi",
                        "data/spotify/weekly_tsoi"]
 
-print("Now start experiments with files from", input_dirs)
+print("Now starting experiments with files from", input_dirs)
 
-aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
-max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
-aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
-aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
+aver_quotacompl = {rule: [] for rule in rules}
+max_quotadeviation = {rule: [] for rule in rules}
+aver_satisfaction = {rule: [] for rule in rules}
+aver_influencegini = {rule: [] for rule in rules}
 
 data_instances = []
 instance_size = 20
@@ -172,7 +179,8 @@ if not exists(picklefile):
                             aver_quotacompl,
                             max_quotadeviation,
                             aver_satisfaction,
-                            aver_influencegini)
+                            aver_influencegini,
+                            rules)
 
     print("writing results to", picklefile)
     with open(picklefile, 'wb') as f:
@@ -185,7 +193,14 @@ else:
         aver_quotacompl, max_quotadeviation, \
             aver_satisfaction, aver_influencegini = pickle.load(f)
 
-statistical_significance(aver_quotacompl, aver_influencegini)
+statistical_significance("perpetual lower quota compliance",
+                         aver_quotacompl)
+statistical_significance("Gini influence coefficient",
+                         aver_influencegini)
+statistical_significance("maximum quota deviation",
+                         max_quotadeviation)
+statistical_significance("utilitarian voter satisfaction",
+                         aver_satisfaction)
 
 # create plots
 plot_data("only_complete_tsoi_data",

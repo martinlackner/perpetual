@@ -36,6 +36,12 @@ class ApprovalProfile(object):
         cands = list(self.cands)
         return ApprovalProfile(voters, cands, approvals_sets)
 
+    def has_empty_sets(self):
+        for appr in self.approval_sets.values():
+            if len(appr) == 0:
+                return True
+        return False
+
 
 # uniformly random profile:
 # voters' approval sets have a size given by dict approval_set_sizes

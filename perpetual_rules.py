@@ -136,6 +136,8 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         for voter in voters:
             if voter not in profile.voters:
                 raise Exception("Missing voter")
+        if profile.has_empty_sets():
+            raise Exception("Voters with empty approval sets")
 
     if rule == "per_pav":
         return per_pav(profile, weights)
@@ -522,18 +524,14 @@ def rotating_dictatorship(profile, weights):
     for voter, weight in iteritems(weights):
         if weight == 0 and voter in voters:
             possible_dictators.append(voter)
-    if len(possible_dictators) > 0:
-        dictator = sorted(possible_dictators)[0]
-        winner = profile.approval_sets[dictator][0]
-        weights[dictator] = 1
-        return winner
-    else:
-        voters = sorted(voters)
-        dictator = voters[0]
+    if len(possible_dictators) == 0:
         for voter in weights:
             weights[voter] = 0
-        weights[dictator] = 1
-        return profile.approval_sets[dictator][0]
+        possible_dictators = voters
+    dictator = sorted(possible_dictators)[0]
+    winner = profile.approval_sets[dictator][0]
+    weights[dictator] = 1
+    return winner
 
 
 def rotating_serial_dictatorship(profile, weights):

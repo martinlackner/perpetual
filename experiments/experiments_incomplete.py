@@ -9,7 +9,6 @@ from experiments import run_exp_for_history, statistical_significance, \
 import sys
 sys.path.insert(0, '..')
 import file_loader
-from perpetual_rules import PERPETUAL_RULES
 
 
 # experiments from files
@@ -60,10 +59,10 @@ for missing_rule in missing_rules[1:]:
     print("Now start experiments with files from", input_dirs, end=' ')
     print("With replacement rule ", missing_rule)
 
-    aver_quotacompl = {rule: [] for rule in PERPETUAL_RULES}
-    max_quotadeviation = {rule: [] for rule in PERPETUAL_RULES}
-    aver_satisfaction = {rule: [] for rule in PERPETUAL_RULES}
-    aver_influencegini = {rule: [] for rule in PERPETUAL_RULES}
+    aver_quotacompl = {rule: [] for rule in rules}
+    max_quotadeviation = {rule: [] for rule in rules}
+    aver_satisfaction = {rule: [] for rule in rules}
+    aver_influencegini = {rule: [] for rule in rules}
 
     data_instances = []
     instance_size = 20
@@ -124,7 +123,14 @@ for missing_rule in missing_rules[1:]:
             (aver_quotacompl, max_quotadeviation,
              aver_satisfaction, aver_influencegini) = pickle.load(f)
 
-    statistical_significance(aver_quotacompl, aver_influencegini)
+    statistical_significance("perpetual lower quota compliance",
+                             aver_quotacompl)
+    statistical_significance("Gini influence coefficient",
+                             aver_influencegini)
+    statistical_significance("maximum quota deviation",
+                             max_quotadeviation)
+    statistical_significance("utilitarian voter satisfaction",
+                             aver_satisfaction)
 
     # create plots
     plot_data("tsoi_data_" + missing_rule,

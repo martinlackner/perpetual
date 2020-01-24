@@ -22,6 +22,7 @@ import perpetual_rules as perpetual
 import perpetual_rules
 from perpetual_rules import SHORT_RULENAMES
 
+
 ########################################################################
 
 
@@ -106,13 +107,14 @@ def plot_data(exp_name, aver_quotacompl, max_quotadeviation,
                          horizontalalignment='center',
                          fontsize=11)
             plot_filename = str("../fig/" + name + ".pdf")
+            print("Writing {}".format(plot_filename))
             plt.savefig(plot_filename, bbox_inches='tight')
             # plt.show()
             plt.close()
 
     matplotlib.rcParams['pdf.fonttype'] = 42
     matplotlib.rcParams['ps.fonttype'] = 42
-    matplotlib.rcParams['figure.figsize'] = 14, 3
+    matplotlib.rcParams['figure.figsize'] = len(rules)+5, 3
 
     # average per_quota compliance
     generate_boxplot(aver_quotacompl, 0.5, 1,
@@ -181,28 +183,20 @@ def run_exp_for_history(history, aver_quotacompl, max_quotadeviation,
             calculate_gini(listvalues(influence)))
 
 
-def statistical_significance(aver_quotacompl, aver_influencegini):
-    rules = aver_quotacompl.keys()
+def statistical_significance(name, dataset):
+    rules = dataset.keys()
+    print("Checking statistical significance of "+name)
     for rule1 in rules:
         for rule2 in rules:
             if rule1 == rule2:
                 continue
 
             _, pvalue = stats.ttest_rel(np.asarray(
-                                            aver_quotacompl[rule1]),
+                                            dataset[rule1]),
                                         np.asarray(
-                                            aver_quotacompl[rule2]))
+                                            dataset[rule2]))
             if pvalue > 0.01:
-                print("aver_quotacompl for", rule1, "and", rule2,
-                      end=' ')
-                print("not significant, p =", pvalue)
-
-            _, pvalue = stats.ttest_rel(np.asarray(
-                                            aver_influencegini[rule1]),
-                                        np.asarray(
-                                            aver_influencegini[rule2]))
-            if pvalue > 0.01:
-                print("aver_influencegini for", rule1, "and", rule2,
+                print(name + " for", rule1, "and", rule2,
                       end=' ')
                 print("not significant, p =", pvalue)
 
@@ -229,106 +223,114 @@ def basic_stats(instances):
 
 # generate a list of 2d coordinates subject to
 # various distributions
-def generate_2d_points(agents, mode, sigma):
+def generate_2d_points(pointids, mode, sigma):
 
-    points = {}
-    # normal distribution, 1/3 of agents centered on (-0.5,-0.5),
-    #                      2/3 of agents on (0.5,0.5)
+    numpoints = len(pointids)
+    points = [0] * numpoints
+
+    # normal distribution, 1/3 of points centered on (-0.5,-0.5),
+    #                      2/3 of points on (0.5,0.5)
     #                      all within [-1,1]x[-1,1]
     if mode == "eucl1":
         def within_bounds(point):
             return (point[0] <= 1 and point[0] >= -1 and
                     point[1] <= 1 and point[1] >= -1)
-        for i in range(int(len(agents) // 3)):
+        for i in range(int(numpoints // 3)):
             while True:
-                points[agents[i]] = (random.gauss(-0.5, sigma),
-                                     random.gauss(-0.5, sigma))
-                if within_bounds(points[agents[i]]):
+                points[i] = (random.gauss(-0.5, sigma),
+                             random.gauss(-0.5, sigma))
+                if within_bounds(points[i]):
                     break
-        for i in range(len(agents) // 3, len(agents)):
+        for i in range(numpoints // 3, numpoints):
             while True:
-                points[agents[i]] = (random.gauss(0.5, sigma),
-                                     random.gauss(0.5, sigma))
-                if within_bounds(points[agents[i]]):
+                points[i] = (random.gauss(0.5, sigma),
+                             random.gauss(0.5, sigma))
+                if within_bounds(points[i]):
                     break
-    # normal distribution, 1/3 of agents centered on (-0.5,-0.5),
-    #                      2/3 of agents on (0.5,0.5)
+    # normal distribution, 1/3 of points centered on (-0.5,-0.5),
+    #                      2/3 of points on (0.5,0.5)
     elif mode == "eucl2":
-        for i in range(int(len(agents) // 3)):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(int(len(agents) // 3), len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
-    # normal distribution, 1/5 of agents centered on (-0.5,-0.5),
-    #                      4/5 of agents on (0.5,0.5)
+        for i in range(int(numpoints // 3)):
+            points[i] = (random.gauss(-0.5, sigma),
+                         random.gauss(-0.5, sigma))
+        for i in range(int(numpoints // 3), numpoints):
+            points[i] = (random.gauss(0.5, sigma),
+                         random.gauss(0.5, sigma))
+    # normal distribution, 1/5 of points centered on (-0.5,-0.5),
+    #                      4/5 of points on (0.5,0.5)
     elif mode == "eucl4":
-        for i in range(len(agents) // 5):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(len(agents) // 5, len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
-    # normal distribution, 3/5 of agents centered on (-0.25,0),
-    #                      2/5 of agents on (0.25,0)
+        for i in range(numpoints // 5):
+            points[i] = (random.gauss(-0.5, sigma),
+                         random.gauss(-0.5, sigma))
+        for i in range(numpoints // 5, numpoints):
+            points[i] = (random.gauss(0.5, sigma),
+                         random.gauss(0.5, sigma))
+    # normal distribution, 3/5 of points centered on (-0.25,0),
+    #                      2/5 of points on (0.25,0)
     elif mode == "eucl6":
-        for i in range(2 * len(agents) // 5):
-            points[agents[i]] = (random.gauss(-0.25, sigma),
-                                 random.gauss(0, sigma))
-        for i in range(2 * len(agents) // 5, len(agents)):
-            points[agents[i]] = (random.gauss(0.25, sigma),
-                                 random.gauss(0, sigma))
+        for i in range(2 * numpoints // 5):
+            points[i] = (random.gauss(-0.25, sigma),
+                         random.gauss(0, sigma))
+        for i in range(2 * numpoints // 5, numpoints):
+            points[i] = (random.gauss(0.25, sigma),
+                         random.gauss(0, sigma))
     # normal distribution
     elif mode == "normal":
-        for i in range(len(agents)):
-            points[agents[i]] = (random.gauss(0., sigma),
-                                 random.gauss(0., sigma))
-    # normal distribution, each 1/4 of agents centered on (+-0.5,+-0.5)
+        for i in range(numpoints):
+            points[i] = (random.gauss(0., sigma),
+                         random.gauss(0., sigma))
+    # normal distribution, each 1/4 of points centered on (+-0.5,+-0.5)
     elif mode == "eucl5":
-        for i in range(len(agents) // 4):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(len(agents) // 4, 2 * len(agents) // 4):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
-        for i in range(2 * len(agents) // 4, 3 * len(agents) // 4):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(0.5, sigma))
-        for i in range(3 * len(agents) // 4, len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-    # normal distribution, 1/5 of agents centered on (-0.5,-0.5),
-    #                      1/5 of agents centered on (-0.5,0.5),
-    #                      1/5 of agents centered on (0.5,-0.5),
-    #                      2/5 of agents on (0.5,0.5)
+        for i in range(numpoints // 4):
+            points[i] = (random.gauss(-0.5, sigma),
+                         random.gauss(-0.5, sigma))
+        for i in range(numpoints // 4, 2 * numpoints // 4):
+            points[i] = (random.gauss(0.5, sigma),
+                         random.gauss(0.5, sigma))
+        for i in range(2 * numpoints // 4, 3 * numpoints // 4):
+            points[i] = (random.gauss(-0.5, sigma),
+                         random.gauss(0.5, sigma))
+        for i in range(3 * numpoints // 4, numpoints):
+            points[i] = (random.gauss(0.5, sigma),
+                         random.gauss(-0.5, sigma))
+    # normal distribution, 1/5 of points centered on (-0.5,-0.5),
+    #                      1/5 of points centered on (-0.5,0.5),
+    #                      1/5 of points centered on (0.5,-0.5),
+    #                      2/5 of points on (0.5,0.5)
     elif mode == "eucl3":
-        for i in range(len(agents) // 5):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(len(agents) // 5, 2 * len(agents) // 5):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(0.5, sigma))
-        for i in range(2 * len(agents) // 5, 3 * len(agents) // 5):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(3 * len(agents) // 5, len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
+        for i in range(numpoints // 5):
+            points[i] = (random.gauss(-0.5, sigma),
+                         random.gauss(-0.5, sigma))
+        for i in range(numpoints // 5, 2 * numpoints // 5):
+            points[i] = (random.gauss(-0.5, sigma),
+                         random.gauss(0.5, sigma))
+        for i in range(2 * numpoints // 5, 3 * numpoints // 5):
+            points[i] = (random.gauss(0.5, sigma),
+                         random.gauss(-0.5, sigma))
+        for i in range(3 * numpoints // 5, numpoints):
+            points[i] = (random.gauss(0.5, sigma),
+                         random.gauss(0.5, sigma))
     elif mode == "eucl2plus":
-        for i in range(len(agents) // 6):
-            points[agents[i]] = (random.gauss(-0.5, sigma),
-                                 random.gauss(-0.5, sigma))
-        for i in range(len(agents) // 6, len(agents)):
-            points[agents[i]] = (random.gauss(0.5, sigma),
-                                 random.gauss(0.5, sigma))
+        for i in range(numpoints // 6):
+            points[i] = (random.gauss(-0.5, sigma),
+                         random.gauss(-0.5, sigma))
+        for i in range(numpoints // 6, numpoints):
+            points[i] = (random.gauss(0.5, sigma),
+                         random.gauss(0.5, sigma))
     elif mode == "uniform_square":
-        for a in agents:
-            points[a] = (random.uniform(-1, 1),
+        for i in range(numpoints):
+            points[i] = (random.uniform(-1, 1),
                          random.uniform(-1, 1))
     else:
         print("mode", mode, "not known")
         quit()
-    return points
+
+    pointsdict = {}
+    random.shuffle(points)
+    for i in range(numpoints):
+        pointsdict[pointids[i]] = points[i]
+
+    return pointsdict
 
 
 # generate instances for experiments according to specifications
@@ -425,4 +427,9 @@ try:
     makedirs("../pickle")
 except OSError:
     if not isdir("../pickle"):
+        raise
+try:
+    makedirs("../fig")
+except OSError:
+    if not isdir("../fig"):
         raise
