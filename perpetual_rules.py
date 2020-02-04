@@ -535,20 +535,21 @@ def rotating_serial_dictatorship(profile, weights):
     possible_dictators = []
     cands = set(profile.cands)
     for voter, weight in iteritems(weights):
-        if weight == 0 and voter in voters:
+        if weight == 1 and voter in voters:
             possible_dictators.append(voter)
     if len(possible_dictators) > 0:
         dictator = sorted(possible_dictators)[0]
-        weights[dictator] = 1
-        for v in voters[voters.index(dictator):] + voters[:voters.index(dictator)]:
+        weights[dictator] = 0
+        for v in (voters[voters.index(dictator):] +
+                  voters[:voters.index(dictator)]):
             if cands & set(profile.approval_sets[v]):
                 cands = cands & set(profile.approval_sets[v])
         return sorted(list(cands))[0]
     else:
         dictator = voters[0]
         for voter in weights:
-            weights[voter] = 0
-        weights[dictator] = 1
+            weights[voter] = 1
+        weights[dictator] = 0
         for v in voters:
             if cands & set(profile.approval_sets[v]):
                 cands = cands & set(profile.approval_sets[v])
