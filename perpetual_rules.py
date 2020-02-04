@@ -28,12 +28,12 @@ PERPETUAL_RULES = ["per_pav",
                    "per_quota",
                    "per_quota_mod",
                    # "per_quota_min",
-                   "serial_dictatorship",
+                   "random_serial_dictatorship",
                    "random_dictatorship",
                    "per_2nd_prize",
                    "rotating_dictatorship",
                    "rotating_serial_dictatorship",
-                   "min_dry_spell"
+                   "per_minmax_dryspell"
                    ]
 """List of available voting rules."""
 
@@ -50,12 +50,12 @@ SHORT_RULENAMES = {"per_pav": "Per. PAV",
                    "per_quota": "Per. Quota",
                    "per_quota_mod": "Per. Quota mod",
                    "per_quota_min": "p-Quo-min",
-                   "serial_dictatorship": "Rand. Serial Dict.",
+                   "random_serial_dictatorship": "Rand. Serial Dict.",
                    "random_dictatorship": "SD",
                    "per_2nd_prize": "p-2nd",
                    "rotating_dictatorship": "Rot. Dict.",
                    "rotating_serial_dictatorship": "Rot. Serial Dict.",
-                   "min_dry_spell": "Min Dry Spell"
+                   "per_minmax_dryspell": "Min Dry Spell"
                    }
 """Dictionary with shortcuts for the rule names."""
 
@@ -163,8 +163,8 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         return per_quota_min(profile, weights)
     elif rule == "random_dictatorship":
         return random_dictatorship(profile)
-    elif rule == "serial_dictatorship":
-        return serial_dictatorship(profile)
+    elif rule == "random_serial_dictatorship":
+        return random_serial_dictatorship(profile)
     elif rule == "per_majority":
         return per_majority(profile, weights)
     elif rule == "per_2nd_prize":
@@ -173,8 +173,8 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         return rotating_dictatorship(profile, weights)
     elif rule == "rotating_serial_dictatorship":
         return rotating_serial_dictatorship(profile, weights)
-    elif rule == "min_dry_spell":
-        return min_dry_spell(profile, weights)
+    elif rule == "per_minmax_dryspell":
+        return per_minmax_dryspell(profile, weights)
     else:
         raise NotImplementedError("rule " + str(rule) + " unknown")
 
@@ -307,8 +307,7 @@ def per_nash(profile, weights):
             else:
                 if weights[v] == 0:
                     # multiply by a small epsilon
-                    score[c] *= Fraction(1, max(sum(weights.values()),
-                                         len(profile.voters)))
+                    score[c] *= Fraction(1, 2**len(profile.voters))
                 else:
                     score[c] *= weights[v]
     maxsc = max(score.values())
@@ -462,7 +461,7 @@ def per_quota(profile, weights, supportbasedtiebreaking=False):
 
 # modification of Perpetual Quota
 # based on qu_k - sat_k
-def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
+def per_quota_mod(profile, weights):
     per_quota, satisfaction = weights
     support = {}
     cand_support = {c: 0 for c in profile.cands}
@@ -472,23 +471,18 @@ def per_quota_mod(profile, weights, supportbasedtiebreaking=True):
 
     for v in profile.voters:
         support[v] = max([cand_support[c]
-                         for c in profile.approval_sets[v]] + [0])
+                          for c in profile.approval_sets[v]] + [0])
 
     score = {}
-    candidate_support = dict.fromkeys(profile.cands, 0)
     for c in profile.cands:
         score[c] = 0
         for v in profile.voters:
             if c in profile.approval_sets[v]:
-                score[c] += max(0, per_quota[v] - satisfaction[v])
-                candidate_support[c] += 1
+                score[c] += max(Fraction(1, 2**len(profile.voters)),
+                                per_quota[v] - satisfaction[v])
     maxsc = max(score.values())
     winner = [c for c in profile.cands if score[c] == maxsc]
-    if supportbasedtiebreaking:
-        winner = sorted(winner, reverse=True,
-                        key=lambda c: candidate_support[c])[0]
-    else:
-        winner = winner[0]
+    winner = winner[0]
 
     for v in profile.voters:
         if winner in profile.approval_sets[v]:
@@ -507,7 +501,7 @@ def random_dictatorship(profile):
     return random.choice(profile.approval_sets[dictator])
 
 
-def serial_dictatorship(profile):
+def random_serial_dictatorship(profile):
     cands = set(profile.cands)
     voters = list(profile.voters)
     random.shuffle(voters)
@@ -522,15 +516,15 @@ def rotating_dictatorship(profile, weights):
               if len(appr) > 0]
     possible_dictators = []
     for voter, weight in iteritems(weights):
-        if weight == 0 and voter in voters:
+        if weight == 1 and voter in voters:
             possible_dictators.append(voter)
     if len(possible_dictators) == 0:
         for voter in weights:
-            weights[voter] = 0
+            weights[voter] = 1
         possible_dictators = voters
     dictator = sorted(possible_dictators)[0]
     winner = profile.approval_sets[dictator][0]
-    weights[dictator] = 1
+    weights[dictator] = 0
     return winner
 
 
@@ -561,7 +555,7 @@ def rotating_serial_dictatorship(profile, weights):
         return sorted(list(cands))[0]
 
 
-def min_dry_spell(profile, weights):
+def per_minmax_dryspell(profile, weights):
     max_weight = max(weights.values())
     score = {c: 0 for c in profile.cands}
     unsat_voters = [v for v in profile.voters
