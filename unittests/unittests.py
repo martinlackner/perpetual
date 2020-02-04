@@ -208,7 +208,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_majority": [3, 3, 2, 3, 3, 3],
                     "per_unitcost": [3, 2, 3, 3, 2, 3],
                     "per_reset": [3, 2, 3, 2, 3, 2],
-                    "per_nash": [3, 3, 2, 3, 2, 3],
+                    "per_nash": [3, 2, 3, 3, 2, 3],
                     "per_equality": [3, 2, 3, 2, 3, 2],
                     "per_phragmen": [3, 2, 3, 3, 2, 3],
                     "per_quota": [3, 2, 3, 3, 2, 3],
@@ -216,7 +216,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_2nd_prize": [3, 3, 2, 3, 3, 3],
                     "rotating_dictatorship": [3, 3, 2]*2,
                     "rotating_serial_dictatorship": [3, 3, 2]*2,
-                    "min_dry_spell": [3, 2]*3}
+                    "per_minmax_dryspell": [3, 2]*3}
 
         self.longMessage = True
 
@@ -226,7 +226,7 @@ class TestPerpetualRules(unittest.TestCase):
         profile = profiles.ApprovalProfile(voters, cands, appsets)
 
         for rule in perpetual.PERPETUAL_RULES:
-            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+            if rule == "random_serial_dictatorship" or rule == "random_dictatorship":
                 continue
 
             weights = perpetual.init_weights(rule, voters)
@@ -247,7 +247,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_majority": [3, 3, 2, 3, 3, 3],
                     "per_unitcost": [3, 2, 3, 3, 2, 3],
                     "per_reset": [3, 2, 3, 2, 3, 2],
-                    "per_nash": [3, 3, 2, 3, 2, 3],
+                    "per_nash": [3, 2, 3, 3, 2, 3],
                     "per_equality": [3, 2, 3, 2, 3, 2],
                     "per_phragmen": [3, 2, 3, 3, 2, 3],
                     "per_quota": [3, 2, 3, 3, 2, 3],
@@ -255,7 +255,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_2nd_prize": [3, 3, 2, 3, 3, 3],
                     "rotating_dictatorship": [3, 3, 2]*2,
                     "rotating_serial_dictatorship": [3, 3, 2]*2,
-                    "min_dry_spell": [3, 2]*3}
+                    "per_minmax_dryspell": [3, 2]*3}
 
         self.longMessage = True
 
@@ -263,7 +263,7 @@ class TestPerpetualRules(unittest.TestCase):
         voters = approval_profiles[0].voters
 
         for rule in perpetual.PERPETUAL_RULES:
-            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+            if rule == "random_serial_dictatorship" or rule == "random_dictatorship":
                 continue
 
             weights = perpetual.init_weights(rule, voters)
@@ -294,7 +294,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_2nd_prize": [3, 3, 2, 1, 3, 2],
                     "rotating_dictatorship": [3, 2, 2, 3, 3, 1],
                     "rotating_serial_dictatorship": [3, 2, 2, 3, 3, 1],
-                    "min_dry_spell": [3, 3, 2, 1, 1, 1]}
+                    "per_minmax_dryspell": [3, 3, 2, 1, 1, 1]}
 
         self.longMessage = True
 
@@ -305,7 +305,7 @@ class TestPerpetualRules(unittest.TestCase):
                              "should have equally many voters.")
 
         for rule in perpetual.PERPETUAL_RULES:
-            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+            if rule == "random_serial_dictatorship" or rule == "random_dictatorship":
                 continue
 
             weights = perpetual.init_weights(rule, voters)
@@ -334,7 +334,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_2nd_prize": [1, 1, 2, 1, 1, 3],
                     "rotating_dictatorship": [3, 2, 2, 3, 3, 1],
                     "rotating_serial_dictatorship": [1, 2, 2, 3, 3, 1],
-                    "min_dry_spell": [1, 1, 2, 1, 1, 3]}
+                    "per_minmax_dryspell": [1, 1, 2, 1, 1, 3]}
 
         self.longMessage = True
 
@@ -345,7 +345,8 @@ class TestPerpetualRules(unittest.TestCase):
                              "should have equally many voters.")
 
         for rule in perpetual.PERPETUAL_RULES:
-            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+            if ((rule == "random_serial_dictatorship"
+                 or rule == "random_dictatorship")):
                 continue
 
             weights = perpetual.init_weights(rule, voters)
@@ -365,7 +366,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_majority": [1, 1, 1, 2, 1, 1],
                     "per_unitcost": [1, 1, 2, 1, 1, 2],
                     "per_reset": [1, 1, 2, 1, 1, 2],
-                    "per_nash": [1, 1, 2, 1, 2, 1],
+                    "per_nash": [1, 2, 1, 1, 2, 1],
                     "per_equality": [1, 2, 1, 2, 1, 2],
                     "per_phragmen": [1, 1, 2, 1, 1, 2],
                     "per_quota": [1, 1, 2, 1, 1, 2],
@@ -373,7 +374,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_2nd_prize": [1, 1, 2, 1, 1, 2],
                     "rotating_dictatorship": [3, 3, 2]*2,
                     "rotating_serial_dictatorship": [1, 1, 2]*2,
-                    "min_dry_spell": [1, 2]*3}
+                    "per_minmax_dryspell": [1, 2]*3}
 
         self.longMessage = True
 
@@ -382,7 +383,7 @@ class TestPerpetualRules(unittest.TestCase):
         voters = approval_profiles[0].voters
 
         for rule in perpetual.PERPETUAL_RULES:
-            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+            if rule == "random_serial_dictatorship" or rule == "random_dictatorship":
                 continue
 
             weights = perpetual.init_weights(rule, voters)
@@ -412,7 +413,7 @@ class TestPerpetualRules(unittest.TestCase):
                     "per_2nd_prize":  [3]*6,
                     "rotating_dictatorship": [3, 3, 2]*2,
                     "rotating_serial_dictatorship": [3, 3, 2]*2,
-                    "min_dry_spell": [3]*6}
+                    "per_minmax_dryspell": [3]*6}
 
         self.longMessage = True
 
@@ -421,7 +422,7 @@ class TestPerpetualRules(unittest.TestCase):
         voters = approval_profiles[0].voters
 
         for rule in perpetual.PERPETUAL_RULES:
-            if rule == "serial_dictatorship" or rule == "random_dictatorship":
+            if rule == "random_serial_dictatorship" or rule == "random_dictatorship":
                 continue
 
             weights = perpetual.init_weights(rule, voters)
