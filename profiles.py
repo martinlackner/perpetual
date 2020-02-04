@@ -6,13 +6,22 @@ import copy
 import numpy.random as random
 from scipy.spatial.distance import euclidean
 from future.utils import iteritems
+import collections
 
 
 # approval profile
 class ApprovalProfile(object):
     def __init__(self, voters, cands, approval_sets):
         self.voters = voters
-        self.approval_sets = approval_sets
+        if isinstance(approval_sets, collections.Mapping):
+            self.approval_sets = approval_sets
+        elif isinstance(approval_sets, list):
+            assert len(approval_sets) == len(voters)
+            self.approval_sets = {}
+            for i in range(len(voters)):
+                self.approval_sets[voters[i]] = approval_sets[i]
+        else:
+            raise Exception("type of approval_sets neither dict nor list")
         self.cands = cands
         for v, appr in iteritems(self.approval_sets):
             for c in appr:
