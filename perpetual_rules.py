@@ -14,6 +14,8 @@ except ImportError:
 
 import random
 import copy
+import math
+import itertools
 
 PERPETUAL_RULES = ["per_pav",
                    "per_consensus",
@@ -26,7 +28,7 @@ PERPETUAL_RULES = ["per_pav",
                    "per_phragmen",
                    # "per_multiplication_offset",
                    "per_quota",
-                   "per_quota_mod",
+                   "per_quota_new",
                    # "per_quota_min",
                    "random_serial_dictatorship",
                    "random_dictatorship",
@@ -48,7 +50,7 @@ SHORT_RULENAMES = {"per_pav": "Per. PAV",
                    "per_phragmen": "Per. Phrag.",
                    "per_multiplication_offset": "p-Mult-off",
                    "per_quota": "Per. Quota",
-                   "per_quota_mod": "Per. Quota mod",
+                   "per_quota_new": "Per. Quota mod",
                    "per_quota_min": "p-Quo-min",
                    "random_serial_dictatorship": "Rand. Serial Dict.",
                    "random_dictatorship": "SD",
@@ -113,7 +115,7 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         The winner according to the rule
     """
     if rule == "per_quota" or rule == "per_quota_min" \
-            or rule == "per_quota_mod":
+            or rule == "per_quota_new":
         voters = weights[0].keys()
     else:
         voters = weights.keys()
@@ -157,8 +159,8 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         return per_phragmen(profile, weights)
     elif rule == "per_quota":
         return per_quota(profile, weights)
-    elif rule == "per_quota_mod":
-        return per_quota_mod(profile, weights)
+    elif rule == "per_quota_new":
+        return per_quota_new(profile, weights)
     elif rule == "per_quota_min":
         return per_quota_min(profile, weights)
     elif rule == "random_dictatorship":
@@ -203,7 +205,7 @@ def init_weights(rule, voters):
         return dict.fromkeys(voters, 0)
     elif (rule == "per_quota"
             or rule == "per_quota_min"
-            or rule == "per_quota_mod"):
+            or rule == "per_quota_new"):
         return (dict.fromkeys(voters, 0), dict.fromkeys(voters, 0))
     else:
         return dict.fromkeys(voters, 1)
@@ -461,7 +463,7 @@ def per_quota(profile, weights, supportbasedtiebreaking=False):
 
 # modification of Perpetual Quota
 # based on qu_k - sat_k
-def per_quota_mod(profile, weights):
+def per_quota_new(profile, weights):
     per_quota, satisfaction = weights
     support = {}
     cand_support = {c: 0 for c in profile.cands}
@@ -473,13 +475,20 @@ def per_quota_mod(profile, weights):
         support[v] = max([cand_support[c]
                           for c in profile.approval_sets[v]] + [0])
 
+    diffs = [abs(math.modf(per_quota[v])[0] - math.modf(per_quota[w])[0])
+             for v, w in itertools.combinations(profile.voters, 2)]
+    diffs = [d for d in diffs if d > 0]
+    if not diffs:
+        epsilon = Fraction(1, len(profile.voters))
+    else:
+        epsilon = min(diffs) / len(profile.voters)
+
     score = {}
     for c in profile.cands:
         score[c] = 0
         for v in profile.voters:
             if c in profile.approval_sets[v]:
-                score[c] += max(Fraction(1, 2**len(profile.voters)),
-                                per_quota[v] - satisfaction[v])
+                score[c] += max(epsilon, per_quota[v] - satisfaction[v])
     maxsc = max(score.values())
     winner = [c for c in profile.cands if score[c] == maxsc]
     winner = winner[0]
