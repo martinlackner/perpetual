@@ -16,6 +16,9 @@ import random
 import copy
 import math
 import itertools
+import numpy as np
+
+rng = np.random.default_rng()
 
 PERPETUAL_RULES = ["per_pav",
                    "per_consensus",
@@ -31,6 +34,7 @@ PERPETUAL_RULES = ["per_pav",
                    "per_quota_new",
                    # "per_quota_min",
                    "random_serial_dictatorship",
+                   "weighted_random_dictatorship",
                    "random_dictatorship",
                    "per_2nd_prize",
                    "rotating_dictatorship",
@@ -41,7 +45,7 @@ PERPETUAL_RULES = ["per_pav",
 
 SHORT_RULENAMES = {"per_pav": "Per. PAV",
                    "per_consensus": "Per. Cons.",
-                   "per_majority": "p-Subn/2",
+                   "per_majority": "p-Maj",
                    "per_unitcost": "Per. Unit-Cost",
                    "per_reset": "Per. Reset",
                    "per_nash": "Per. Nash",
@@ -155,6 +159,8 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         return per_equality(profile, weights)
     elif rule == "av":
         return av(profile)
+    elif rule == "per_jan":
+        return per_jan(profile, weights)
     elif rule == "per_phragmen":
         return per_phragmen(profile, weights)
     elif rule == "per_quota":
@@ -163,6 +169,8 @@ def compute_rule(rule, profile, weights=None, missing_rule=None):
         return per_quota_new(profile, weights)
     elif rule == "per_quota_min":
         return per_quota_min(profile, weights)
+    elif rule == "weighted_random_dictatorship":
+        return weighted_random_dictatorship(profile, weights)
     elif rule == "random_dictatorship":
         return random_dictatorship(profile)
     elif rule == "random_serial_dictatorship":
@@ -216,23 +224,13 @@ def init_weights(rule, voters):
 ########################################################################
 
 def per_pav(profile, weights):
-    score = {}
-    for c in profile.cands:
-        score[c] = 0
-        for v in profile.voters:
-            if c in profile.approval_sets[v]:
-                score[c] += weights[v]
-    maxsc = max(score.values())
-    # return false if winner is not unique
-    # if len([c for c in profiles.cands if score[c] == maxsc])>1:
-    #     return False
-    winner = [c for c in profile.cands if score[c] == maxsc][0]
-    for v in profile.voters:
-        if winner in profile.approval_sets[v]:
-            # 1/x --> 1/(x+1)
-            weights[v] = Fraction(1, (Fraction(1) / weights[v] + 1))
-    # tied_winners = [c for c in profiles.cands if score[c] == maxsc]
-    return winner
+    def winfunc(x):
+        return Fraction(x, x+1)
+
+    def losefunc(x):
+        return x
+
+    return weighted_approval_method(profile, weights, winfunc, losefunc)
 
 
 def per_consensus(profile, weights):
@@ -240,15 +238,44 @@ def per_consensus(profile, weights):
 
 
 def per_unitcost(profile, weights):
-    return __per_subtraction(profile, weights, subtr_mode="per_unitcost")
+    def winfunc(x):
+        return x
+
+    def losefunc(x):
+        return x+1
+
+    return weighted_approval_method(profile, weights, winfunc, losefunc)
 
 
 def per_reset(profile, weights):
-    return __per_subtraction(profile, weights, subtr_mode="zero")
+    def winfunc(_):
+        return 1
+
+    def losefunc(x):
+        return x+1
+
+    return weighted_approval_method(profile, weights, winfunc, losefunc)
 
 
-def per_majority(profile, weights):
-    return __per_subtraction(profile, weights, subtr_mode="numvoters_half")
+def per_jan(profile, weights):
+    def winfunc(x):
+        if x == 1:
+            return 0.5
+        values = {1: 0.5}
+        lastval = 0.5
+        for i in range(2, 200):
+            values[lastval] = (1. / (2*i+.95))
+            lastval = values[lastval]
+        return values[x]
+
+    def losefunc(x):
+        return x
+
+    return weighted_approval_method(profile, weights, winfunc, losefunc)
+
+# old definition, uninteresting rule
+# def per_majority(profile, weights):
+#     return __per_subtraction(profile, weights, subtr_mode="numvoters_half")
 
 
 def per_2nd_prize(profile, weights):
@@ -283,12 +310,6 @@ def __per_subtraction(profile, weights, subtr_mode="numvoters"):
             if winner in profile.approval_sets[v] and weights[v] > 0:
                 weights[v] -= Fraction(len(profile.voters),
                                        2 * candidate_support[winner])
-        elif subtr_mode == "per_unitcost":
-            if winner in profile.approval_sets[v]:
-                weights[v] -= 1
-        elif subtr_mode == "zero":
-            if winner in profile.approval_sets[v]:
-                weights[v] = 0
         else:
             raise NotImplementedError("'" + str(subtr_mode)
                                       + "' is not a known subtraction mode")
@@ -296,6 +317,50 @@ def __per_subtraction(profile, weights, subtr_mode="numvoters"):
         weights[v] += 1
 
     # tied_winners = [c for c in profiles.cands if score[c] == maxsc]
+    return winner
+
+
+def weighted_approval_method(profile, weights, winfunc, losefunc):
+    score = {}
+    for c in profile.cands:
+        score[c] = 0
+        for v in profile.voters:
+            assert(weights[v] >= 0)
+            if c in profile.approval_sets[v]:
+                score[c] += weights[v]
+    maxsc = max(score.values())
+    winner = [c for c in profile.cands if score[c] == maxsc][0]
+    for v in profile.voters:
+        if winner in profile.approval_sets[v]:
+            weights[v] = winfunc(weights[v])
+        else:
+            weights[v] = losefunc(weights[v])
+
+    # tied_winners = [c for c in profiles.cands if score[c] == maxsc]
+    return winner
+
+
+def per_majority(profile, weights):
+    score = {}
+    candidate_support = dict.fromkeys(profile.cands, 0)
+    requ_add_budg = dict.fromkeys(profile.cands, len(profile.voters))
+    for c in profile.cands:
+        score[c] = 0
+        for v in profile.voters:
+            if c in profile.approval_sets[v]:
+                score[c] += weights[v]
+                candidate_support[c] += 1
+        requ_add_budg[c] = Fraction(len(profile.voters) - score[c], candidate_support[c])
+    least_requ_add_budg = min(requ_add_budg.values())
+    print("lrab", least_requ_add_budg)
+    winner = [c for c in profile.cands if requ_add_budg[c] == least_requ_add_budg][0]
+
+    for v in profile.voters:
+        if winner in profile.approval_sets[v]:
+            weights[v] = 0
+        else:
+            weights[v] += least_requ_add_budg
+
     return winner
 
 
@@ -508,6 +573,26 @@ def random_dictatorship(profile):
               if len(appr) > 0]
     dictator = random.choice(voters)
     return random.choice(profile.approval_sets[dictator])
+
+
+def weighted_random_dictatorship(profile, weights):
+    voters = [v for (v, appr) in iteritems(profile.approval_sets)
+              if len(appr) > 0]
+    norm_weights = [weights[v] for v in voters]
+    norm_weights = [w / sum(norm_weights) for w in norm_weights]
+    rand_selection = rng.multinomial(1, norm_weights)
+    rand_selection = [index for index, val in enumerate(rand_selection) if val > 0][0]
+    dictator = voters[rand_selection]
+
+    winner = random.choice(profile.approval_sets[dictator])
+
+    for v in profile.voters:
+        if winner in profile.approval_sets[v]:
+            weights[v] = weights[v] / (weights[v] + 1)
+        else:
+            pass
+
+    return winner
 
 
 def random_serial_dictatorship(profile):
